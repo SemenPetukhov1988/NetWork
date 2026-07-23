@@ -1,25 +1,34 @@
 package ru.netology.network.api
 
+import okhttp3.MultipartBody
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.Part
 import retrofit2.http.Path
-import ru.netology.network.dto.response.AuthenticationRequest
-import ru.netology.network.dto.response.AuthenticationResponse
-import ru.netology.network.dto.response.RegistrationRequest
-import ru.netology.network.dto.response.RegistrationResponse
-import ru.netology.network.dto.response.UserProfileDto
+import retrofit2.http.Query
+
+import ru.netology.network.dto.response.UserDto
+
 
 interface UsersApi {
-    @POST("/api/users/registration")
-    suspend fun register(@Body request: RegistrationRequest): RegistrationResponse
-
-    @POST("/api/users/authentication")
-    suspend fun authenticate(@Body request: AuthenticationRequest): AuthenticationResponse
-
     @GET("/api/users")
-    suspend fun getAllUsers(): List<UserProfileDto> // <-- Используем новое имя
+    suspend fun getAllUsers(): List<UserDto>
 
     @GET("/api/users/{id}")
-    suspend fun getUserById(@Path("id") id: Long): UserProfileDto // <-- Используем новое имя
+    suspend fun getUserById(@Path("id") id: Long): UserDto
+
+    @POST("/api/users/registration")
+    suspend fun register(
+        @Query("login") login: String,
+        @Query("pass") pass: String,
+        @Query("name") name: String,
+        @Part file: MultipartBody.Part? = null
+    ): Unit // Или верни TokenDto, если нужно
+
+    @POST("/api/users/authentication")
+    suspend fun login(
+        @Query("login") login: String,
+        @Query("pass") pass: String
+    ): Unit // Или верни TokenDto
 }

@@ -1,10 +1,7 @@
 package ru.netology.network.dto.response
 
-
-
-data class UserDto(
+data class TokenDto(
     val id: Long,
-    val login: String,
-    val name: String,
+    val token: String,
     val avatar: String? = null
 )

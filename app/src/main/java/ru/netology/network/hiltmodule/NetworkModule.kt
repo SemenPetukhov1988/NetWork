@@ -11,6 +11,7 @@ import ru.netology.network.api.EventsApi
 import ru.netology.network.api.GeneralWallApi
 import ru.netology.network.api.JobsApi
 import ru.netology.network.api.MediaApi
+import ru.netology.network.api.MyWallApi
 import ru.netology.network.api.UsersApi
 
 import javax.inject.Singleton
@@ -36,13 +37,12 @@ object NetworkModule {
     @Singleton
     fun provideRetrofit(client: OkHttpClient): Retrofit {
         return Retrofit.Builder()
-            .baseUrl(BuildConfig.BASE_URL)
+            .baseUrl(BuildConfig.BASE_URL) // Важно: должно заканчиваться на /
             .client(client)
+            // ВОТ ЭТА СТРОКА ДЕЛАЕТ КОНВЕРТАЦИЮ JSON → DTO
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
-
-    // --- РЕГИСТРАЦИЯ ВСЕХ ИНТЕРФЕЙСОВ API ---
 
     @Provides
     @Singleton
@@ -52,14 +52,20 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideEventsApi(retrofit: Retrofit): EventsApi {
-        return retrofit.create(EventsApi::class.java)
+    fun provideMyWallApi(retrofit: Retrofit): MyWallApi {
+        return retrofit.create(MyWallApi::class.java)
     }
 
     @Provides
     @Singleton
     fun provideJobsApi(retrofit: Retrofit): JobsApi {
         return retrofit.create(JobsApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideEventsApi(retrofit: Retrofit): EventsApi {
+        return retrofit.create(EventsApi::class.java)
     }
 
     @Provides

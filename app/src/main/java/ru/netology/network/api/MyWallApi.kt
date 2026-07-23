@@ -8,48 +8,40 @@ import retrofit2.http.Query
 import ru.netology.network.dto.response.PostDto
 
 interface MyWallApi {
-    // 1. Основная лента (для Paging 3)
+
+    // --- ЗАГРУЗКА МОЕЙ ЛЕНТЫ ---
+
+    /** GET /api/my/wall - Основная лента (автоматически подтягивает ID текущего юзера) */
     @GET("/api/my/wall")
-    suspend fun getWall(
-        @Query("page") page: Int = 0,
-        @Query("size") size: Int = 20
-    ): List<PostDto>
+    suspend fun getMyWall(): List<PostDto>
 
-    // 2. Самые свежие посты (для быстрого старта)
+    /** GET /api/my/wall/latest - Последние посты */
     @GET("/api/my/wall/latest")
-    suspend fun getLatest(
-        @Query("count") count: Int = 10
-    ): List<PostDto>
+    suspend fun getMyLatest(@Query("count") count: Int): List<PostDto>
 
-    // 3. Один пост по ID
-    @GET("/api/my/wall/{id}")
-    suspend fun getPost(
-        @Path("id") id: Long
-    ): PostDto
-
-    // 4. Подгрузка новых (Pull-to-refresh)
+    /** GET /api/my/wall/{id}/newer - Новые посты после ID */
     @GET("/api/my/wall/{id}/newer")
-    suspend fun getNewer(
-        @Path("id") id: Long,
-        @Query("limit") limit: Int = 10
-    ): List<PostDto>
+    suspend fun getMyNewer(@Path("id") postId: Long): List<PostDto>
 
-    // 5. Подгрузка старых (скролл вниз)
+    /** GET /api/my/wall/{id}/before - Старые посты до ID */
     @GET("/api/my/wall/{id}/before")
-    suspend fun getBefore(
-        @Path("id") id: Long,
-        @Query("limit") limit: Int = 10
-    ): List<PostDto>
+    suspend fun getMyBefore(@Path("id") postId: Long, @Query("count") count: Int): List<PostDto>
 
-    // 6. ЛАЙК: ПОСТАВИТЬ (POST)
+    /** GET /api/my/wall/{id}/after - Посты после ID */
+    @GET("/api/my/wall/{id}/after")
+    suspend fun getMyAfter(@Path("id") postId: Long, @Query("count") count: Int): List<PostDto>
+
+    /** GET /api/my/wall/{id} - Получить свой пост */
+    @GET("/api/my/wall/{id}")
+    suspend fun getMyPostById(@Path("id") postId: Long): PostDto
+
+    // --- ЛАЙКИ ДЛЯ МОЕЙ ЛЕНТЫ (Специфичные эндпоинты из Swagger) ---
+    // Примечание: В спецификации есть отдельные пути /api/my/wall/{id}/likes.
+    // Используй их, если логика лайков в "Моей ленте" отличается от обычной.
+
     @POST("/api/my/wall/{id}/likes")
-    suspend fun likePost(
-        @Path("id") id: Long
-    ) // Возвращает Unit (200 OK)
+    suspend fun likeMyPost(@Path("id") postId: Long): PostDto
 
-    // 7. ЛАЙК: УБРАТЬ (DELETE)
     @DELETE("/api/my/wall/{id}/likes")
-    suspend fun unlikePost(
-        @Path("id") id: Long
-    ) // Возвращает Unit (204 No Content)
+    suspend fun unlikeMyPost(@Path("id") postId: Long): PostDto
 }

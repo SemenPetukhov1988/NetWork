@@ -6,95 +6,54 @@ import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
-import ru.netology.network.dto.response.CommentDto
+
 import ru.netology.network.dto.response.PostDto
 
 interface GeneralWallApi {
 
-    @GET("/api/posts")
-    suspend fun getPosts(
-        @Query("page") page: Int = 0,
-        @Query("size") size: Int = 20
-    ): List<PostDto>
+    // --- ЗАГРУЗКА ЛЕНТЫ (ЛЮБОГО ПОЛЬЗОВАТЕЛЯ) ---
 
-    // 2. Создать пост
-    // Внимание: В общей ленте создание поста может быть запрещено или перенаправлено.
-    // Но по Swagger этот метод есть, поэтому оставляем.
+    /** GET /api/{authorId}/wall - Лента постов конкретного автора */
+    @GET("/api/{authorId}/wall")
+    suspend fun getWallByAuthor(@Path("authorId") authorId: Long): List<PostDto>
+
+    /** GET /api/{authorId}/wall/latest - Последние посты автора (с пагинацией count) */
+    @GET("/api/{authorId}/wall/latest")
+    suspend fun getLatestWallByAuthor(@Path("authorId") authorId: Long, @Query("count") count: Int): List<PostDto>
+
+    /** GET /api/{authorId}/wall/{id}/newer - Посты, созданные ПОСЛЕ указанного ID */
+    @GET("/api/{authorId}/wall/{id}/newer")
+    suspend fun getNewerWallByAuthor(@Path("authorId") authorId: Long, @Path("id") postId: Long): List<PostDto>
+
+    /** GET /api/{authorId}/wall/{id}/before - Посты, созданные ДО указанного ID (с count) */
+    @GET("/api/{authorId}/wall/{id}/before")
+    suspend fun getBeforeWallByAuthor(@Path("authorId") authorId: Long, @Path("id") postId: Long, @Query("count") count: Int): List<PostDto>
+
+    /** GET /api/{authorId}/wall/{id}/after - Посты, созданные ПОСЛЕ (аналог newer, зависит от логики бэкенда) */
+    @GET("/api/{authorId}/wall/{id}/after")
+    suspend fun getAfterWallByAuthor(@Path("authorId") authorId: Long, @Path("id") postId: Long, @Query("count") count: Int): List<PostDto>
+
+    /** GET /api/{authorId}/wall/{id} - Получить один пост по ID */
+    @GET("/api/{authorId}/wall/{id}")
+    suspend fun getPostById(@Path("authorId") authorId: Long, @Path("id") postId: Long): PostDto
+
+    // --- СОЗДАНИЕ И УДАЛЕНИЕ (Только для себя, поэтому пути /api/posts) ---
+
+    /** POST /api/posts - Создать пост */
     @POST("/api/posts")
     suspend fun createPost(@Body post: PostDto): PostDto
 
-    // 3. ЛАЙК: Поставить
-    @POST("/api/posts/{id}/likes")
-    suspend fun likePost(@Path("id") id: Long)
-
-    // 4. ЛАЙК: Убрать
-    @DELETE("/api/posts/{id}/likes")
-    suspend fun unlikePost(@Path("id") id: Long)
-
-    // 5. Получить один пост
-    @GET("/api/posts/{id}")
-    suspend fun getPostById(@Path("id") id: Long): PostDto
-
-    // 6. Удалить пост
-    // В общей ленте удаление может работать только если ты автор.
+    /** DELETE /api/posts/{id} - Удалить свой пост */
     @DELETE("/api/posts/{id}")
-    suspend fun deletePost(@Path("id") id: Long)
+    suspend fun deletePost(@Path("id") id: Long): Unit
 
-    // 7. Подгрузка новых (Pull-to-refresh)
-    @GET("/api/posts/{id}/newer")
-    suspend fun getNewerPosts(@Path("id") id: Long, @Query("limit") limit: Int = 10): List<PostDto>
+    // --- ВЗАИМОДЕЙСТВИЯ (Лайки) ---
 
-    // 8. Подгрузка старых (скролл вниз)
-    @GET("/api/posts/{id}/before")
-    suspend fun getOlderPosts(@Path("id") id: Long, @Query("limit") limit: Int = 10): List<PostDto>
+    /** POST /api/{authorId}/wall/{id}/likes - Поставить лайк */
+    @POST("/api/{authorId}/wall/{id}/likes")
+    suspend fun likePost(@Path("authorId") authorId: Long, @Path("id") postId: Long): PostDto
 
-    // 9. Подгрузка "после" (альтернативная логика пагинации)
-    @GET("/api/posts/{id}/after")
-    suspend fun getAfterPosts(@Path("id") id: Long, @Query("limit") limit: Int = 10): List<PostDto>
-
-    // 10. Быстрый старт (свежие посты)
-    @GET("/api/posts/latest")
-    suspend fun getLatestPosts(@Query("count") count: Int = 10): List<PostDto>
-
-    // --- КОММЕНТАРИИ (добавляем новые методы) ---
-
-   // Получить список комментариев к посту
-
-    @GET("/api/posts/{postId}/comments")
-    suspend fun getComments(@Path("postId") postId: Long): List<CommentDto>
-
-      //Добавить новый комментарий
-
-    @POST("/api/posts/{postId}/comments")
-    suspend fun addComment(
-        @Path("postId") postId: Long,
-        @Body comment: CommentDto
-    ): CommentDto
-
-
-     //Поставить лайк комментарию
-
-    @POST("/api/posts/{postId}/comments/{id}/likes")
-    suspend fun likeComment(
-        @Path("postId") postId: Long,
-        @Path("id") commentId: Long
-    ): Unit
-
-
-     //Убрать лайк с комментария
-
-    @DELETE("/api/posts/{postId}/comments/{id}/likes")
-    suspend fun unlikeComment(
-        @Path("postId") postId: Long,
-        @Path("id") commentId: Long
-    ): Unit
-
-
-     // Удалить комментарий (доступно только автору или админу)
-
-    @DELETE("/api/posts/{postId}/comments/{id}")
-    suspend fun deleteComment(
-        @Path("postId") postId: Long,
-        @Path("id") commentId: Long
-    ): Unit
+    /** DELETE /api/{authorId}/wall/{id}/likes - Убрать лайк */
+    @DELETE("/api/{authorId}/wall/{id}/likes")
+    suspend fun unlikePost(@Path("authorId") authorId: Long, @Path("id") postId: Long): PostDto
 }
