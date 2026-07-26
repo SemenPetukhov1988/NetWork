@@ -12,6 +12,7 @@ import androidx.fragment.app.viewModels // Импорт для делегата
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle // Для безопасного сбора Flow
+import androidx.navigation.fragment.findNavController
 import dagger.hilt.android.AndroidEntryPoint
 
 import kotlinx.coroutines.launch
@@ -27,7 +28,7 @@ class AuthFragment : Fragment(R.layout.fragment_auth) {
     private var _binding: FragmentAuthBinding? = null
     private val binding get() = _binding!!
 
-    // Получаем ViewModel через Hilt (он сам подтянет туда @Inject репозиторий)
+
     private val viewModel: AuthViewModel by viewModels()
 
     override fun onCreateView(
@@ -40,7 +41,6 @@ class AuthFragment : Fragment(R.layout.fragment_auth) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         setupClickListeners()
         observeViewModel() // Подписываемся на изменения стейта
     }
@@ -50,8 +50,7 @@ class AuthFragment : Fragment(R.layout.fragment_auth) {
             attemptLogin()
         }
         binding.registerButton.setOnClickListener {
-            // TODO: Реализовать логику регистрации во ViewModel аналогично Login
-            Toast.makeText(requireContext(), "Регистрация пока не готова", Toast.LENGTH_SHORT).show()
+           findNavController().navigate(R.id.registrationFragment)
         }
     }
 

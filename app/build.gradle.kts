@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.ksp)
     alias(libs.plugins.dagger.hilt.android)
+
 }
 
 android {
@@ -32,8 +33,8 @@ android {
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            manifestPlaceholders["usesCleartextTraffic"] = false
-            buildConfigField("String", "BASE_URL", "\"https://netomedia.ru\"")
+            manifestPlaceholders["usesCleartextTraffic"] = true
+            
         }
         debug {
             buildConfigField("String", "API_KEY", "\"c1378193-bc0e-42c8-a502-b8d66d189617\"")
@@ -65,10 +66,12 @@ dependencies {
     implementation(libs.androidx.navigation.ui.ktx)
     implementation(libs.androidx.room)
     ksp(libs.androidx.room.compiler)
+    implementation(libs.material)
     implementation(platform(libs.firebase))
     implementation(libs.firebase.messaging)
     implementation(libs.play.services)
     implementation(libs.converter.gson)
+    implementation("androidx.fragment:fragment-ktx:1.8.0")
     implementation(libs.logging.interceptor)
     implementation(libs.glide)
     implementation(libs.kotlinx.coroutines.android)
