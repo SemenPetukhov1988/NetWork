@@ -8,13 +8,18 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
+import androidx.fragment.app.viewModels // Импорт для делегата
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle // Для безопасного сбора Flow
 import dagger.hilt.android.AndroidEntryPoint
-import jakarta.inject.Inject
+
 import kotlinx.coroutines.launch
 import ru.netology.network.R
-import ru.netology.network.databinding.FragmentAuthBinding // ВАЖНО: подключи правильный Binding
-import ru.netology.network.repository.AuthRepository
+import ru.netology.network.databinding.FragmentAuthBinding
+import ru.netology.network.dto.statemodel.AuthUiState
+
+import ru.netology.network.viewmodel.AuthViewModel
 
 @AndroidEntryPoint
 class AuthFragment : Fragment(R.layout.fragment_auth) {
@@ -22,8 +27,8 @@ class AuthFragment : Fragment(R.layout.fragment_auth) {
     private var _binding: FragmentAuthBinding? = null
     private val binding get() = _binding!!
 
-    @Inject
-    lateinit var authRepository: AuthRepository // Инжектим репозиторий через Hilt
+    // Получаем ViewModel через Hilt (он сам подтянет туда @Inject репозиторий)
+    private val viewModel: AuthViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -36,72 +41,74 @@ class AuthFragment : Fragment(R.layout.fragment_auth) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // TODO: Позже здесь инициализируем ViewModel через viewModels()
-        // val viewModel: AuthViewModel by viewModels()
-        // observeViewModel(viewModel)
-
         setupClickListeners()
+        observeViewModel() // Подписываемся на изменения стейта
     }
 
     private fun setupClickListeners() {
-        binding.loginButton.setOnClickListener { attemptLogin() }
-        binding.registerButton.setOnClickListener { attemptRegister() }
+        binding.loginButton.setOnClickListener {
+            attemptLogin()
+        }
+        binding.registerButton.setOnClickListener {
+            // TODO: Реализовать логику регистрации во ViewModel аналогично Login
+            Toast.makeText(requireContext(), "Регистрация пока не готова", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun attemptLogin() {
-        // 1. Забираем данные
+        // Забираем данные из полей
         val login = binding.loginEditText.text.toString().trim()
         val pass = binding.passwordEditText.text.toString()
 
-        // 2. Простая клиентская валидация (заглушка требований ТЗ)
+        // Простая проверка пустоты (валидация UI)
         if (login.isEmpty()) {
-            showFieldError(binding.loginErrorText, "Поле не может быть пустым")
+            showFieldError(binding.loginErrorText, "Введите логин")
             return
         }
         if (pass.isEmpty()) {
-            showFieldError(binding.passwordErrorText, "Поле не может быть пустым")
+            showFieldError(binding.passwordErrorText, "Введите пароль")
             return
         }
 
         clearErrors()
-        setLoading(true) // Показываем ProgressBar
 
-        // 3. Вызов РЕАЛЬНОГО API через Repository
-        lifecycleScope.launch {
-            try {
-                //Здесь вызывается твой голый Retrofit-интерфейс!
-                val response = authRepository.login(login, pass)
+        // Вызов функции во ViewModel. Фрагмент НЕ знает про Repository.
+        viewModel.login(login, pass)
+    }
 
-                // 4. Заглушка успеха: просто пишем в логи и имитируем переход
-                Log.d("AUTH_SUCCESS", "Токен получен: ${response.token}")
-                Toast.makeText(requireContext(), "Успешный вход!", Toast.LENGTH_SHORT).show()
-
-                // TODO: Вместо Toast здесь будет навигация в MainFeedFragment
-                // findNavController().navigate(R.id.action_authFragment_to_feedFragment)
-
-            } catch (e: Exception) {
-                // 5. Заглушка ошибки сервера
-                Log.e("AUTH_ERROR", e.message ?: "Unknown error")
-                Toast.makeText(requireContext(), "Ошибка входа: ${e.message}", Toast.LENGTH_LONG).show()
-                // TODO: Если ошибка 400 - подсвечиваем красным поле пароля
-            } finally {
-                setLoading(false) // Всегда прячем лоадер
+    // Функция наблюдения за состоянием от ViewModel
+    private fun observeViewModel() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            // repeatOnLifecycle защищает от утечек при поворотах экрана
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.state.collect { state ->
+                    renderState(state)
+                }
             }
         }
     }
 
-    private fun attemptRegister() {
-        // Логика аналогична Login, но вызывает repository.register(...)
-        // Пока можно просто сделать Toast "Переход на регистрацию"
-        Toast.makeText(requireContext(), "Функционал регистрации временно недоступен", Toast.LENGTH_SHORT).show()
-        // TODO: Либо реализовать полную форму регистрации здесь же
+    // Отрисовка интерфейса в зависимости от того, что прислал VM
+    private fun renderState(state: AuthUiState) {
+        setLoading(state.isLoading)
+
+        if (state.errorMessage != null) {
+            Log.e("AUTH_ERROR", state.errorMessage)
+            Toast.makeText(requireContext(), state.errorMessage, Toast.LENGTH_LONG).show()
+        }
+
+        if (state.isSuccess) {
+            Log.d("AUTH_SUCCESS", "Переход к ленте!")
+            Toast.makeText(requireContext(), "Успешный вход!", Toast.LENGTH_SHORT).show()
+            // TODO: Здесь будет навигация
+            // findNavController().navigate(R.id.action_authFragment_to_feedFragment)
+        }
     }
 
-    // --- Вспомогательные функции-заглушки ---
+    // --- Вспомогательные функции работы с UI ---
 
     private fun setLoading(isLoading: Boolean) {
         binding.progressOverlay.visibility = if (isLoading) View.VISIBLE else View.GONE
-        // Блокируем ввод данных во время запроса
         binding.loginButton.isEnabled = !isLoading
         binding.registerButton.isEnabled = !isLoading
         binding.loginEditText.isEnabled = !isLoading
