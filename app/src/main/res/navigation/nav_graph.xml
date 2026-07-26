@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/authFragment">
+
+    <!-- Наш стартовый экран -->
+    <fragment
+        android:id="@+id/authFragment"
+        android:name="ru.netology.network.fragment.AuthFragment"
+    android:label="Авторизация" />
+
+
+</navigation>
