@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import dagger.hilt.android.AndroidEntryPoint
 import ru.netology.network.R
 import ru.netology.network.databinding.FragmentRegistrationBinding
@@ -41,6 +42,10 @@ class RegistrationFragment : Fragment() {
     private fun setupClickListeners() {
         binding.loginButton.setOnClickListener {
             attemptRegister()
+        }
+
+        binding.btnBack.setOnClickListener {
+            findNavController().popBackStack()
         }
     }
 
