@@ -34,7 +34,7 @@ android {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             manifestPlaceholders["usesCleartextTraffic"] = true
-            
+
         }
         debug {
             buildConfigField("String", "API_KEY", "\"c1378193-bc0e-42c8-a502-b8d66d189617\"")

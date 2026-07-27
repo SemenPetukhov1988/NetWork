@@ -8,3 +8,4 @@ data class UserDto(
     val name: String,
     val avatar: String? = null
 )
+

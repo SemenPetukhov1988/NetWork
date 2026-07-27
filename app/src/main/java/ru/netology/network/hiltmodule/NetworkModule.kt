@@ -1,9 +1,11 @@
     package ru.netology.network.hiltmodule
+    import android.util.Log
     import dagger.Module
     import dagger.Provides
     import dagger.hilt.InstallIn
     import dagger.hilt.components.SingletonComponent
     import okhttp3.OkHttpClient
+    import okhttp3.logging.HttpLoggingInterceptor
     import retrofit2.Retrofit
     import retrofit2.converter.gson.GsonConverterFactory
     import ru.netology.network.BuildConfig
@@ -23,11 +25,26 @@
         @Provides
         @Singleton
         fun provideOkHttpClient(): OkHttpClient {
+            val loggingInterceptor = HttpLoggingInterceptor().apply {
+                level = if (BuildConfig.DEBUG) {
+                    HttpLoggingInterceptor.Level.BODY
+                } else {
+                    HttpLoggingInterceptor.Level.NONE
+                }
+            }
+
             return OkHttpClient.Builder()
+                .addInterceptor(loggingInterceptor)
+                // ВАЖНО: этот интерцептор должен быть ПОСЛЕ логгера, но ДО всех остальных
                 .addInterceptor { chain ->
-                    val request = chain.request().newBuilder()
+                    var request = chain.request()
+
+                    // Добавляем Api-Key явно и принудительно
+                    request = request.newBuilder()
                         .addHeader("Api-Key", BuildConfig.API_KEY)
                         .build()
+                    Log.d("NETWORK_DEBUG", "Отправляем запрос на: ${request.url}")
+                    Log.d("NETWORK_DEBUG", "Заголовки запроса: ${request.headers}")
                     chain.proceed(request)
                 }
                 .build()
