@@ -28,7 +28,7 @@ class AuthFragment : Fragment(R.layout.fragment_auth) {
     private var _binding: FragmentAuthBinding? = null
     private val binding get() = _binding!!
 
-
+    // ViewModel уже подключена через Hilt
     private val viewModel: AuthViewModel by viewModels()
 
     override fun onCreateView(
@@ -42,7 +42,7 @@ class AuthFragment : Fragment(R.layout.fragment_auth) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupClickListeners()
-        observeViewModel() // Подписываемся на изменения стейта
+        observeViewModel()
     }
 
     private fun setupClickListeners() {
@@ -50,16 +50,14 @@ class AuthFragment : Fragment(R.layout.fragment_auth) {
             attemptLogin()
         }
         binding.registerButton.setOnClickListener {
-           findNavController().navigate(R.id.registrationFragment)
+            findNavController().navigate(R.id.registrationFragment)
         }
     }
 
     private fun attemptLogin() {
-        // Забираем данные из полей
         val login = binding.loginEditText.text.toString().trim()
         val pass = binding.passwordEditText.text.toString()
 
-        // Простая проверка пустоты (валидация UI)
         if (login.isEmpty()) {
             showFieldError(binding.loginErrorText, "Введите логин")
             return
@@ -71,14 +69,13 @@ class AuthFragment : Fragment(R.layout.fragment_auth) {
 
         clearErrors()
 
-        // Вызов функции во ViewModel. Фрагмент НЕ знает про Repository.
+        // Отправляем данные во ViewModel.
+        // Логика сохранения токена УЖЕ внутри viewModel.login()
         viewModel.login(login, pass)
     }
 
-    // Функция наблюдения за состоянием от ViewModel
     private fun observeViewModel() {
         viewLifecycleOwner.lifecycleScope.launch {
-            // repeatOnLifecycle защищает от утечек при поворотах экрана
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.state.collect { state ->
                     renderState(state)
@@ -87,26 +84,40 @@ class AuthFragment : Fragment(R.layout.fragment_auth) {
         }
     }
 
-    // Отрисовка интерфейса в зависимости от того, что прислал VM
     private fun renderState(state: AuthUiState) {
         setLoading(state.isLoading)
 
-        if (state.errorMessage != null) {
+        // 1. Обработка ошибки
+        if (!state.isSuccess && state.errorMessage != null) {
             Log.e("AUTH_ERROR", state.errorMessage)
             Toast.makeText(requireContext(), state.errorMessage, Toast.LENGTH_LONG).show()
         }
 
+        // 2. Обработка успеха
         if (state.isSuccess) {
             Log.d("AUTH_SUCCESS", "Переход к ленте!")
-            Toast.makeText(requireContext(), "Успешный вход!", Toast.LENGTH_SHORT).show()
-            // TODO: Здесь будет навигация
-            // findNavController().navigate(R.id.action_authFragment_to_feedFragment)
+
+            // ВАЖНО: Делаем навигацию только один раз.
+            // Если у тебя в AuthUiState флаг isSuccess не сбрасывается автоматически,
+            // то этот блок сработает много раз подряд.
+            // Самый простой способ для диплома — сделать переход и сразу сбросить флаг в ViewModel,
+            // либо использовать одноразовый Event.
+
+            // Пока сделаем так: переходим и показываем Toast.
+            // Чтобы не было проблем с повторными переходами, можно проверить, не на том ли мы экране уже.
+            // Но самый надежный вариант для твоего текущего кода — просто перейти.
+
+            findNavController().navigate(R.id.action_global_to_wall)
+            viewModel.resetState()
+
+            // Опционально: если хочешь убрать Toast или состояние после перехода,
+            // можно вызвать viewModel.resetState(), но это требует доп. метода в VM.
+            // Для начала хватит этого.
         }
     }
 
-    // --- Вспомогательные функции работы с UI ---
-
     private fun setLoading(isLoading: Boolean) {
+        // Если идет загрузка, блокируем кнопки и показываем индикатор
         binding.progressOverlay.visibility = if (isLoading) View.VISIBLE else View.GONE
         binding.loginButton.isEnabled = !isLoading
         binding.registerButton.isEnabled = !isLoading
