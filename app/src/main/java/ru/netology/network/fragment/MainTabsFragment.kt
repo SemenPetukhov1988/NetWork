@@ -6,6 +6,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 
@@ -37,6 +40,12 @@ class MainTabsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        ViewCompat.setOnApplyWindowInsetsListener(binding.topBar) { v, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            // Добавляем отступ только сверху. Остальные оставляем как есть.
+            v.updatePadding(top = insets.top)
+            WindowInsetsCompat.CONSUMED
+        }
 
         // 1. Настраиваем обработчик нажатий на меню (BottomNavigationView)
         binding.bottomNavigation.setOnItemSelectedListener { item ->

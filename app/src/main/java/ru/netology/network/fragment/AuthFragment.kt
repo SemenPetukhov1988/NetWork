@@ -8,6 +8,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.viewModels // Импорт для делегата
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -36,6 +39,18 @@ class AuthFragment : Fragment(R.layout.fragment_auth) {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentAuthBinding.inflate(inflater, container, false)
+
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            // Добавляем отступ сверху на высоту статус-бара, если это нужно
+            view.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                topMargin = insets.top
+                // Если внизу тоже есть панель навигации и она перекрывает контент — раскомментируй:
+                // bottomMargin = insets.bottom
+            }
+            WindowInsetsCompat.CONSUMED
+        }
+
         return binding.root
     }
 
