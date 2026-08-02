@@ -11,6 +11,7 @@
     import ru.netology.network.BuildConfig
     import ru.netology.network.api.EventsApi
     import ru.netology.network.api.GeneralWallApi
+    import ru.netology.network.api.GlobalWallApi
     import ru.netology.network.api.JobsApi
     import ru.netology.network.api.MediaApi
     import ru.netology.network.api.MyWallApi
@@ -95,5 +96,11 @@
         @Singleton
         fun provideUsersApi(retrofit: Retrofit): UsersApi {
             return retrofit.create(UsersApi::class.java)
+        }
+
+        @Provides
+        @Singleton
+        fun provideGlobalWallApi(retrofit: Retrofit): GlobalWallApi {
+            return retrofit.create(GlobalWallApi::class.java)
         }
     }

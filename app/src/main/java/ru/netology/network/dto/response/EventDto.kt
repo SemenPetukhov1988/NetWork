@@ -11,7 +11,7 @@ data class EventDto(
     val content: String,
     val datetime: String, // date-time
     val published: String, // date-time
-    val coords: CoordinatesDto? = null,
+    //val coords: CoordinatesDto? = null,
     val type: EventType,
     @SerializedName("likeOwnerIds")
     val likeOwnerIds: List<Long>,
@@ -25,7 +25,7 @@ data class EventDto(
     val participatedByMe: Boolean,
     val attachment: AttachmentDto? = null,
     val link: String? = null,
-    val users: Map<String, UserPreviewDto>? = null
+   // val users: Map<String, UserPreviewDto>? = null
 )
 
 enum class EventType {
