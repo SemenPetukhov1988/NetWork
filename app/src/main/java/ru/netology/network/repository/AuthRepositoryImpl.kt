@@ -16,8 +16,8 @@ class AuthRepositoryImpl @Inject constructor(
         } catch (e: HttpException) {
             val code = e.code()
             when (code) {
-                401, 404 -> throw Exception("Неверный логин или пароль. Попробуйте ещё раз.")
-                400 -> throw Exception("Ошибка валидации данных")
+                401, 404 -> throw Exception("Юзер не зарегестрирован.Попробуйте ещё раз.")
+                400 -> throw Exception("Неправильный пароль")
                 else -> throw Exception("Произошла ошибка сервера: $code")
             }
         }
@@ -29,8 +29,9 @@ class AuthRepositoryImpl @Inject constructor(
             api.register(login = login, name = name, pass = pass)
         } catch (e: HttpException) {
             when (e.code()) {
-                404 -> throw Exception("Пользователь с таким логином уже существует!")
+                403 -> throw Exception("Пользователь с таким логином уже существует!")
                 400 -> throw Exception("Ошибка валидации данных")
+
                 else -> throw Exception("Сервер вернул ошибку: ${e.code()}")
             }
         }

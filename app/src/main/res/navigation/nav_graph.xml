@@ -4,7 +4,7 @@
     android:id="@+id/nav_graph"
     app:startDestination="@id/authFragment">
 
-    <!-- Экран авторизации -->
+    <!-- 1. Экран авторизации -->
     <fragment
         android:id="@+id/authFragment"
         android:name="ru.netology.network.fragment.AuthFragment"
@@ -15,28 +15,33 @@
             app:destination="@id/registrationFragment" />
     </fragment>
 
-    <!-- Экран регистрации -->
+    <!-- 2. Экран регистрации -->
     <fragment
         android:id="@+id/registrationFragment"
         android:name="ru.netology.network.fragment.RegistrationFragment"
         android:label="Регистрация" />
 
-    <!-- Экран стены (ленты) -->
+    <!-- 3. ГЛАВНЫЙ ЭКРАН С ВКЛАДКАМИ (MainTabsFragment) -->
+    <!-- Теперь это единый контейнер для Ленты, Событий и Пользователей -->
     <fragment
-        android:id="@+id/myWallFragment"
-        android:name="ru.netology.network.fragment.MyWallFragment"
-        android:label="Лента">
+        android:id="@+id/feedFragment"
+        android:name="ru.netology.network.fragment.MainTabsFragment"
+        android:label="Главная">
 
-        <!-- ПРОСТОЙ ЭКШЕН: переход на экран входа -->
+        <!-- Переход на экран входа (если пользователь разлогинился) -->
         <action
-            android:id="@+id/action_myWallFragment_to_authFragment"
-            app:destination="@id/authFragment" />
+            android:id="@+id/action_feedFragment_to_authFragment"
+            app:destination="@id/authFragment"
+            app:popUpTo="@id/feedFragment"
+            app:popUpToInclusive="true" />
     </fragment>
 
-    <!-- ГЛОБАЛЬНЫЙ ПЕРЕХОД НА СТЕНУ (для автовхода из MainActivity) -->
+    <!-- ГЛОБАЛЬНЫЙ ПЕРЕХОД НА ГЛАВНЫЙ ЭКРАН -->
+    <!-- Используется в MainActivity после успешного входа -->
     <action
-        android:id="@+id/action_global_to_wall"
-        app:destination="@id/myWallFragment"
+        android:id="@+id/action_global_to_feed"
+        app:destination="@id/feedFragment"
         app:popUpTo="@id/authFragment"
         app:popUpToInclusive="true" />
+
 </navigation>

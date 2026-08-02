@@ -107,7 +107,7 @@ class AuthFragment : Fragment(R.layout.fragment_auth) {
             // Чтобы не было проблем с повторными переходами, можно проверить, не на том ли мы экране уже.
             // Но самый надежный вариант для твоего текущего кода — просто перейти.
 
-            findNavController().navigate(R.id.action_global_to_wall)
+            findNavController().navigate(R.id.action_global_to_feed)
             viewModel.resetState()
 
             // Опционально: если хочешь убрать Toast или состояние после перехода,

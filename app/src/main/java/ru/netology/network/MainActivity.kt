@@ -35,7 +35,7 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch { // Проверяем токен асинхронно при старте
             if (localAuthRepository.isLoggedIn()) {
                 // Если есть токен — переходим на ленту через ГЛОБАЛЬНОЕ действие
-                navController.navigate(R.id.action_global_to_wall)
+                navController.navigate(R.id.action_global_to_feed)
             }
 
             // Если НЕ залогинен — ничего не делаем.

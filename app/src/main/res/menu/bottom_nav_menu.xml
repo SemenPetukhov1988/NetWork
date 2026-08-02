@@ -1,0 +1,14 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/action_wall"
+        android:icon="@drawable/post_24dp_0000f5_fill0_wght400_grad0_opsz24"
+        android:title="Лента" />
+    <item
+        android:id="@+id/action_events"
+        android:icon="@drawable/event_list_24dp_1f1f1f_fill0_wght400_grad0_opsz24"
+        android:title="События" />
+    <item
+        android:id="@+id/action_users"
+        android:icon="@drawable/group_24dp_0000f5_fill0_wght400_grad0_opsz24"
+        android:title="Пользователи" />
+</menu>
