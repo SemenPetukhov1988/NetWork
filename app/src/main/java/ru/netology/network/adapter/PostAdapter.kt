@@ -11,6 +11,7 @@ import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.bitmap.CircleCrop
 import ru.netology.network.R
 import ru.netology.network.dto.response.PostDto
 
@@ -49,12 +50,15 @@ class PostAdapter(
             post.authorAvatar?.let { url ->
                 Glide.with(itemView.context)
                     .load(url)
-                    .placeholder(R.drawable.avatar)
-                    .error(R.drawable.ic_error)
-                    .circleCrop()
+                    .circleCrop()                 // <-- сразу после load, до placeholder/error
+                    .placeholder(R.drawable.load)
+                    .error(R.drawable.smile)
                     .into(ivAvatar)
             } ?: run {
-                ivAvatar.setImageResource(R.drawable.avatar)
+                Glide.with(itemView.context)
+                    .load(R.drawable.avatar)
+                    .circleCrop()
+                    .into(ivAvatar)
             }
 
             // Фото поста
@@ -63,9 +67,8 @@ class PostAdapter(
                 ivPostImage.isVisible = true
                 Glide.with(itemView.context)
                     .load(attachment.url)
-                    .placeholder(R.drawable.ic_placeholder)
-                    .error(R.drawable.ic_error)
-                    .centerCrop()
+                    .placeholder(R.drawable.load)
+                    .error(R.drawable.error)
                     .into(ivPostImage)
             } else {
                 ivPostImage.isVisible = false

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_margin="8dp"
     app:cardCornerRadius="12dp"
     app:cardElevation="2dp">
@@ -26,8 +26,7 @@
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:scaleType="centerCrop"
-                android:contentDescription="Аватар пользователя"
-               />
+                android:contentDescription="Аватар пользователя" />
 
             <!-- Текст (Имя и Дата) -->
             <LinearLayout
@@ -42,18 +41,18 @@
                     android:id="@+id/postAuthorName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Leo Lipshutz"
                     android:textSize="16sp"
                     android:textStyle="bold"
-                    android:textColor="#000000" />
+                    android:textColor="#000000"
+                    tools:text="Adison Levin" />
 
                 <TextView
                     android:id="@+id/postDate"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="21.02.22 14:23"
                     android:textSize="12sp"
-                    android:textColor="#888888" />
+                    android:textColor="#888888"
+                    tools:text="21.08.22 14:23" />
             </LinearLayout>
 
             <!-- Три точки (меню) -->
@@ -64,19 +63,46 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:src="@drawable/menu_24dp_000000_fill0_wght400_grad0_opsz24"
                 android:contentDescription="Опции"
-
                 android:scaleType="centerInside" />
         </LinearLayout>
 
         <!-- Фото поста (растягивается по ширине) -->
-
         <ImageView
-            android:id="@+id/postImage"
+            android:id="@+id/eventImage"
             android:layout_width="match_parent"
             android:layout_height="220dp"
             android:scaleType="fitCenter"
-            android:contentDescription="Фото поста"
+            android:contentDescription="Фото события"
             tools:src="@drawable/view_castle_surrounded_by_nature_landscape_23_2150984705" />
+
+        <!-- Блок с информацией о событии (Online + дата) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="8dp"
+            android:background="#FFFAF4FF">
+
+            <TextView
+                android:id="@+id/eventType"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAllCaps="true"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="#6D3EB7"
+                tools:text="Online" />
+
+            <TextView
+                android:id="@+id/eventTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:textSize="12sp"
+                android:textColor="#888888"
+                tools:text="28.08.22 19:00" />
+        </LinearLayout>
 
         <!-- Текст поста -->
         <TextView
@@ -84,35 +110,34 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="16dp"
-            android:text="Шляпа — это головной убор, который носили в Древней Греции..."
             android:textSize="15sp"
             android:textColor="#000000"
-            android:lineSpacingExtra="4dp" />
+            android:lineSpacingExtra="4dp"
+            tools:text="Приглашаем вас на увлекательную лекцию о том, как правильно дрессировать котиков!" />
 
-        <!-- Кнопки взаимодействия (Лайк, Поделиться) -->
+        <!-- 👇 ВОТ ЭТА ЧАСТЬ СДЕЛАНА ТОЧНО КАК НА СКРИНШОТЕ 👇 -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="48dp"
+            android:layout_height="52dp"
             android:orientation="horizontal"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
             android:gravity="center_vertical"
             android:background="?attr/selectableItemBackground">
 
-            <!-- Кнопка Лайк -->
+            <!-- Лайк: Сердце + цифра -->
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:orientation="horizontal"
-                android:clickable="true"
-                android:focusable="true"
-                android:padding="8dp">
+                android:gravity="center_vertical"
+                android:paddingEnd="24dp">
 
                 <ImageView
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:src="@drawable/favorite_24dp_ea3323_fill0_wght400_grad0_opsz24"
-                    android:tint="#FF0000"
                     android:contentDescription="Лайк" />
 
                 <TextView
@@ -126,32 +151,49 @@
                     android:layout_gravity="center_vertical" />
             </LinearLayout>
 
-            <!-- Кнопка Поделиться (справа) -->
+            <!-- Поделиться: Иконка (без текста, как на картинке) -->
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:gravity="end"
-                android:clickable="true"
-                android:focusable="true"
-                android:padding="8dp">
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingEnd="24dp">
 
                 <ImageView
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:src="@drawable/share_24dp_0000f5_fill0_wght400_grad0_opsz24"
-                    android:tint="#000000"
                     android:contentDescription="Поделиться" />
+            </LinearLayout>
+
+            <!-- Участники: Люди + цифра -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingEnd="0dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/group_24dp_1f1f1f_fill0_wght400_grad0_opsz24"
+                    android:contentDescription="Участники" />
 
                 <TextView
+                    android:id="@+id/postParticipantCount"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Поделиться"
+                    android:text="2"
                     android:textSize="14sp"
                     android:textColor="#000000"
                     android:layout_marginStart="8dp"
                     android:layout_gravity="center_vertical" />
             </LinearLayout>
         </LinearLayout>
+        <!-- 👆 КОНЕЦ БЛОКА КАК НА СКРИНШОТЕ 👆 -->
+
     </LinearLayout>
 </androidx.cardview.widget.CardView>
