@@ -19,7 +19,6 @@ import kotlinx.coroutines.launch
 import ru.netology.network.R
 import ru.netology.network.databinding.FragmentMainTabsBinding
 import ru.netology.network.repository.LocalAuthRepository
-import kotlin.jvm.java
 
 @AndroidEntryPoint
 class MainTabsFragment : Fragment() {
@@ -60,7 +59,7 @@ class MainTabsFragment : Fragment() {
                     true
                 }
                 R.id.action_users -> {
-                    switchTab(UsersFragment())
+                    switchTab(UsersAllFragment())
                     true
                 }
                 else -> false

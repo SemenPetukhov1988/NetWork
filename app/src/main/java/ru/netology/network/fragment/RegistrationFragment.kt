@@ -7,6 +7,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
@@ -35,7 +38,14 @@ class RegistrationFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setupClickListeners()
+                    ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, windowInsets ->
+                val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+                // Добавляем отступ только сверху. Остальные оставляем как есть.
+                v.updatePadding(top = insets.top)
+                WindowInsetsCompat.CONSUMED
+            }
+
+            setupClickListeners()
         observeViewModel()
     }
 
@@ -94,7 +104,7 @@ class RegistrationFragment : Fragment() {
                 // ГЛАВНОЕ: ты видишь токен в Logcat!
                 Log.d("REGISTRATION_SUCCESS", "🎉 ТОКЕН ПОЛУЧЕН: $token")
                 Toast.makeText(requireContext(), "Регистрация успешна!", Toast.LENGTH_LONG).show()
-
+                findNavController().navigate(R.id.authFragment)
                 // TODO: Завтра сюда вставишь сохранение токена
                 // saveToken(token)
             } else {

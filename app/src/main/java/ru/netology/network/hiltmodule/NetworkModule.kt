@@ -16,6 +16,8 @@
     import ru.netology.network.api.MediaApi
     import ru.netology.network.api.MyWallApi
     import ru.netology.network.api.UsersApi
+    import ru.netology.network.repository.UsersRepository
+    import ru.netology.network.repository.UsersRepositoryImpl
 
     import javax.inject.Singleton
 
@@ -102,5 +104,10 @@
         @Singleton
         fun provideGlobalWallApi(retrofit: Retrofit): GlobalWallApi {
             return retrofit.create(GlobalWallApi::class.java)
+        }
+
+        @Provides
+        fun provideUsersRepository(api: UsersApi): UsersRepository {
+            return UsersRepositoryImpl(api)
         }
     }
