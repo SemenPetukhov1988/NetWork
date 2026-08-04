@@ -9,9 +9,10 @@ data class EventDto(
     val authorJob: String? = null,
     val authorAvatar: String? = null,
     val content: String,
-    val datetime: String, // date-time
-    val published: String, // date-time
-    //val coords: CoordinatesDto? = null,
+    val datetime: String,
+    val published: String,
+    // Раскомментируй, если ленте нужна геолокация события
+    // val coords: CoordinatesDto? = null,
     val type: EventType,
     @SerializedName("likeOwnerIds")
     val likeOwnerIds: List<Long>,
@@ -25,9 +26,17 @@ data class EventDto(
     val participatedByMe: Boolean,
     val attachment: AttachmentDto? = null,
     val link: String? = null,
-   // val users: Map<String, UserPreviewDto>? = null
+    // Раскомментируй, если бэк реально отдаёт эту мапу и она нужна в ленте
+    // @SerializedName("users")
+    // val users: Map<String, UserPreviewDto>? = null,
+)
+
+data class CoordinatesDto(
+    val lat: Double,
+    val long: Double,
 )
 
 enum class EventType {
-    OFFLINE, ONLINE
+    OFFLINE,
+    ONLINE
 }
