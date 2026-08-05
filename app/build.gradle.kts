@@ -65,6 +65,7 @@ dependencies {
     implementation(libs.androidx.navigation.fragment.ktx)
     implementation(libs.androidx.navigation.ui.ktx)
     implementation(libs.androidx.room)
+    implementation(libs.constraintlayout)
     ksp(libs.androidx.room.compiler)
     implementation(libs.material)
     implementation(platform(libs.firebase))

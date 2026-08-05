@@ -25,6 +25,7 @@ desugaring = "2.1.5"
 swiperefreshlayout = "1.2.0"
 ucrop = "2.2.11"
 dagger = "2.57.2"
+constraintlayoutVersion = "2.2.2"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -52,6 +53,7 @@ material-v190 = { module = "com.google.android.material:material", version.ref =
 play-services = { group = "com.google.android.gms", name = "play-services-base", version.ref = "playServices" }
 desugaring = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "desugaring" }
 ucrop = { module = "com.github.yalantis:ucrop", version.ref = "ucrop" }
+constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayoutVersion" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

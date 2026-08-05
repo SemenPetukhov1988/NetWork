@@ -43,5 +43,13 @@
         app:destination="@id/feedFragment"
         app:popUpTo="@id/authFragment"
         app:popUpToInclusive="true" />
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="ru.netology.network.fragment.ProfileFragment"
+        android:label="ProfileFragment" >
+        <action
+            android:id="@+id/action_profileFragment_to_authFragment"
+            app:destination="@id/authFragment" />
+    </fragment>
 
 </navigation>

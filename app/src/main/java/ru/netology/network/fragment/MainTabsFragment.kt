@@ -54,14 +54,17 @@ class MainTabsFragment : Fragment() {
                     switchTab(WallAllUsersFragment())
                     true
                 }
+
                 R.id.action_events -> {
                     switchTab(EventsAllUsersFragment())
                     true
                 }
+
                 R.id.action_users -> {
                     switchTab(UsersAllFragment())
                     true
                 }
+
                 else -> false
             }
         }
@@ -71,17 +74,9 @@ class MainTabsFragment : Fragment() {
             switchTab(WallAllUsersFragment())
         }
 
-        // 3. Кнопка выхода
-        binding.logoutButton.setOnClickListener {
-            lifecycleScope.launch {
-                // 1. Очищаем токен через твой репозиторий (это у тебя уже работает)
-                localAuthRepository.clearToken()
-
-                // 2. Переходим на экран входа — ИСПОЛЬЗУЕМ НОВЫЙ ID из nav_graph
-                findNavController().navigate(R.id.action_feedFragment_to_authFragment)
-
-                Toast.makeText(requireContext(), "Вы вышли из аккаунта", Toast.LENGTH_SHORT).show()
-            }
+        // 3. Кнопка профиля
+        binding.profileButton.setOnClickListener {
+            findNavController().navigate(R.id.profileFragment)
         }
     }
 
