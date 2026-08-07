@@ -1,4 +1,5 @@
 package ru.netology.network
+import android.graphics.Color
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
@@ -25,6 +26,7 @@ class MainActivity : AppCompatActivity() {
 
         // Edge-to-edge (для Material You). Можно убрать, если у тебя другая тема.
         WindowCompat.setDecorFitsSystemWindows(window, false)
+        window.statusBarColor = Color.WHITE
 
         // НАЙДИ ФРАГМЕНТ-ХОСТ И ПОЛУЧИ КОНТРОЛЛЕР ЭТИМ СПОСОБОМ
         val navHost = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment

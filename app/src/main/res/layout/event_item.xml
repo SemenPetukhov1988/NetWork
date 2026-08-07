@@ -70,8 +70,9 @@
         <ImageView
             android:id="@+id/eventImage"
             android:layout_width="match_parent"
-            android:layout_height="220dp"
+            android:layout_height="wrap_content"
             android:scaleType="fitCenter"
+            android:adjustViewBounds="true"
             android:contentDescription="Фото события"
             tools:src="@drawable/view_castle_surrounded_by_nature_landscape_23_2150984705" />
 

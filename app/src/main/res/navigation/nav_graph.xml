@@ -51,5 +51,9 @@
             android:id="@+id/action_profileFragment_to_authFragment"
             app:destination="@id/authFragment" />
     </fragment>
+    <fragment
+        android:id="@+id/createPostFragment"
+        android:name="ru.netology.network.fragment.CreatePostFragment"
+        android:label="CreatePostFragment" />
 
 </navigation>

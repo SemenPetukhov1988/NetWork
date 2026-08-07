@@ -7,9 +7,9 @@
     <!-- Шапка (Toolbar) -->
     <LinearLayout
         android:id="@+id/topBar"
-        android:background="#CEDFE8"
+        android:background="#FFFFFF"
         android:layout_width="0dp"
-        android:layout_height="84dp"
+        android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:paddingStart="16dp"
@@ -42,7 +42,7 @@
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/tabsContainer"
         android:layout_width="0dp"
-        android:background="#ECFCCB"
+        android:background="#F5F5F5"
         android:layout_marginTop="0dp"
         android:layout_height="0dp"
         app:layout_constraintBottom_toTopOf="@id/bottomNavigation"
@@ -53,13 +53,18 @@
     <!-- Нижняя навигация (Меню) -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigation"
-        android:background="#CEDFE8"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        app:menu="@menu/bottom_nav_menu"
-        app:labelVisibilityMode="labeled"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+
+     app:iconSize="24dp"
+    app:iconPadding="8dp"
+     app:elevation="0dp"
+
+    app:labelVisibilityMode="auto"
+    android:background="#FFFFFF"
+    app:layout_constraintBottom_toBottomOf="parent"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintStart_toStartOf="parent"
+    app:menu="@menu/bottom_nav_menu"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
