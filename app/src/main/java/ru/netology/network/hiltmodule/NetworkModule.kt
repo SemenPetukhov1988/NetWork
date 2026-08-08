@@ -1,113 +1,213 @@
-    package ru.netology.network.hiltmodule
-    import android.util.Log
-    import dagger.Module
-    import dagger.Provides
-    import dagger.hilt.InstallIn
-    import dagger.hilt.components.SingletonComponent
-    import okhttp3.OkHttpClient
-    import okhttp3.logging.HttpLoggingInterceptor
-    import retrofit2.Retrofit
-    import retrofit2.converter.gson.GsonConverterFactory
-    import ru.netology.network.BuildConfig
-    import ru.netology.network.api.EventsApi
-    import ru.netology.network.api.GeneralWallApi
-    import ru.netology.network.api.GlobalWallApi
-    import ru.netology.network.api.JobsApi
-    import ru.netology.network.api.MediaApi
-    import ru.netology.network.api.MyWallApi
-    import ru.netology.network.api.UsersApi
-    import ru.netology.network.repository.UsersRepository
-    import ru.netology.network.repository.UsersRepositoryImpl
+package ru.netology.network.hiltmodule
 
-    import javax.inject.Singleton
+import android.util.Log
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import ru.netology.network.BuildConfig
+import ru.netology.network.api.*
+import ru.netology.network.repository.LocalAuthRepository
+import ru.netology.network.repository.PostsRepository
+import ru.netology.network.repository.PostsRepositoryImpl
+import ru.netology.network.repository.UsersRepository
+import ru.netology.network.repository.UsersRepositoryImpl
 
-    @Module
-    @InstallIn(SingletonComponent::class)
-    object NetworkModule {
+import jakarta.inject.Named
+import jakarta.inject.Singleton
 
-        @Provides
-        @Singleton
-        fun provideOkHttpClient(): OkHttpClient {
-            val loggingInterceptor = HttpLoggingInterceptor().apply {
-                level = if (BuildConfig.DEBUG) {
-                    HttpLoggingInterceptor.Level.BODY
-                } else {
-                    HttpLoggingInterceptor.Level.NONE
-                }
+@Module
+@InstallIn(SingletonComponent::class)
+object NetworkModule {
+
+    @Provides
+    @Singleton
+    fun provideLoggingInterceptor(): HttpLoggingInterceptor {
+        return HttpLoggingInterceptor().apply {
+            level = if (BuildConfig.DEBUG) {
+                HttpLoggingInterceptor.Level.BODY
+            } else {
+                HttpLoggingInterceptor.Level.NONE
             }
-
-            return OkHttpClient.Builder()
-                .addInterceptor(loggingInterceptor)
-                // ВАЖНО: этот интерцептор должен быть ПОСЛЕ логгера, но ДО всех остальных
-                .addInterceptor { chain ->
-                    var request = chain.request()
-
-                    // Добавляем Api-Key явно и принудительно
-                    request = request.newBuilder()
-                        .addHeader("Api-Key", BuildConfig.API_KEY)
-                        .build()
-                    Log.d("NETWORK_DEBUG", "Отправляем запрос на: ${request.url}")
-                    Log.d("NETWORK_DEBUG", "Заголовки запроса: ${request.headers}")
-                    chain.proceed(request)
-                }
-                .build()
-        }
-
-        @Provides
-        @Singleton
-        fun provideRetrofit(client: OkHttpClient): Retrofit {
-            return Retrofit.Builder()
-                .baseUrl(BuildConfig.BASE_URL)
-                .client(client)
-
-                .addConverterFactory(GsonConverterFactory.create())
-                .build()
-        }
-
-        @Provides
-        @Singleton
-        fun provideGeneralWallApi(retrofit: Retrofit): GeneralWallApi {
-            return retrofit.create(GeneralWallApi::class.java)
-        }
-
-        @Provides
-        @Singleton
-        fun provideMyWallApi(retrofit: Retrofit): MyWallApi {
-            return retrofit.create(MyWallApi::class.java)
-        }
-
-        @Provides
-        @Singleton
-        fun provideJobsApi(retrofit: Retrofit): JobsApi {
-            return retrofit.create(JobsApi::class.java)
-        }
-
-        @Provides
-        @Singleton
-        fun provideEventsApi(retrofit: Retrofit): EventsApi {
-            return retrofit.create(EventsApi::class.java)
-        }
-
-        @Provides
-        @Singleton
-        fun provideMediaApi(retrofit: Retrofit): MediaApi {
-            return retrofit.create(MediaApi::class.java)
-        }
-
-        @Provides
-        @Singleton
-        fun provideUsersApi(retrofit: Retrofit): UsersApi {
-            return retrofit.create(UsersApi::class.java)
-        }
-
-        @Provides
-        @Singleton
-        fun provideGlobalWallApi(retrofit: Retrofit): GlobalWallApi {
-            return retrofit.create(GlobalWallApi::class.java)
-        }
-
-        @Provides
-        fun provideUsersRepository(api: UsersApi): UsersRepository {
-            return UsersRepositoryImpl(api)
         }
     }
+
+    // --- ЕДИНЫЙ КЛИЕНТ ДЛЯ АВТОРИЗОВАННЫХ ЗАПРОСОВ
+    // Он ставит И Api-Key, И Authorization (токен)
+    @Provides
+    @Singleton
+    @Named("auth")
+    fun provideAuthOkHttpClient(
+        loggingInterceptor: HttpLoggingInterceptor,
+        localAuthRepository: LocalAuthRepository
+    ): OkHttpClient {
+        return OkHttpClient.Builder()
+            // 1. Сначала добавляем наш кастомный интерцептор с заголовками
+            .addInterceptor { chain ->
+                var request = chain.request()
+                val token = localAuthRepository.getTokenSync()
+
+                // Логи для отладки (можно удалить в релизе)
+
+                Log.d("TOKEN_CHECK", "TOKEN_LENGTH: \${token?.length ?: 0}")
+
+                // Строим новый запрос
+                request = request.newBuilder()
+                    // ВАЖНО 1: Добавляем Api-Key всегда (это признак нашего приложения)
+                    .addHeader("Api-Key", BuildConfig.API_KEY)
+
+                    // ВАЖНО 2: Добавляем токен ТОЛЬКО если он есть
+                    .apply {
+                        if (!token.isNullOrBlank()) {
+                            // Отправляем ГОЛЫЙ токен (без слова Bearer), как требует твой бэкенд
+                            addHeader("Authorization", token)
+                        }
+                    }
+                    .build()
+
+                chain.proceed(request)
+            }
+            // 2. Потом добавляем логирование, чтобы видеть уже финальный запрос с обоими заголовками
+            .addInterceptor(loggingInterceptor)
+            .build()
+    }
+
+    // --- КЛИЕНТ ДЛЯ ПУБЛИЧНЫХ ЗАПРОСОВ (только чтение ленты)
+    // Тут нужен только Api-Key, токен не нужен
+    @Provides
+    @Singleton
+    @Named("normal")
+    fun provideNormalOkHttpClient(
+        loggingInterceptor: HttpLoggingInterceptor
+    ): OkHttpClient {
+        return OkHttpClient.Builder()
+            .addInterceptor(loggingInterceptor)
+            .addInterceptor { chain ->
+                var request = chain.request()
+                // Для публичных запросов нужен только Api-Key
+                request = request.newBuilder()
+                    .addHeader("Api-Key", BuildConfig.API_KEY)
+                    .build()
+                chain.proceed(request)
+            }
+            .build()
+    }
+
+    // --- Retrofit для авторизованных запросов (создание постов, лайки и т.д.)
+    @Provides
+    @Singleton
+    @Named("auth")
+    fun provideAuthRetrofit(
+        @Named("auth") client: OkHttpClient
+    ): Retrofit {
+        return Retrofit.Builder()
+            .baseUrl(BuildConfig.BASE_URL)
+            .client(client)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+
+    // --- Retrofit для обычных запросов (лента)
+    @Provides
+    @Singleton
+    @Named("normal")
+    fun provideNormalRetrofit(
+        @Named("normal") client: OkHttpClient
+    ): Retrofit {
+        return Retrofit.Builder()
+            .baseUrl(BuildConfig.BASE_URL)
+            .client(client)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+
+    // ==========================================
+    // API PROVIDERS
+    // ==========================================
+
+    // PostsApi (создание поста) должен использовать клиент "auth"
+    @Provides
+    @Singleton
+    @Named("auth")
+    fun provideAuthPostsApi(
+        @Named("auth") retrofit: Retrofit
+    ): PostsApi {
+        return retrofit.create(PostsApi::class.java)
+    }
+
+    // Остальные API (лента, вакансии и т.д.) используют клиент "normal"
+    @Provides
+    @Singleton
+    @Named("normal")
+    fun provideGlobalWallApi(
+        @Named("normal") retrofit: Retrofit
+    ): GlobalWallApi = retrofit.create(GlobalWallApi::class.java)
+
+    @Provides
+    @Singleton
+    @Named("normal")
+    fun provideGeneralWallApi(
+        @Named("normal") retrofit: Retrofit
+    ): GeneralWallApi = retrofit.create(GeneralWallApi::class.java)
+
+    @Provides
+    @Singleton
+    @Named("normal")
+    fun provideMyWallApi(
+        @Named("normal") retrofit: Retrofit
+    ): MyWallApi = retrofit.create(MyWallApi::class.java)
+
+    @Provides
+    @Singleton
+    @Named("normal")
+    fun provideJobsApi(
+        @Named("normal") retrofit: Retrofit
+    ): JobsApi = retrofit.create(JobsApi::class.java)
+
+    @Provides
+    @Singleton
+    @Named("normal")
+    fun provideEventsApi(
+        @Named("normal") retrofit: Retrofit
+    ): EventsApi = retrofit.create(EventsApi::class.java)
+
+    @Provides
+    @Singleton
+    @Named("normal")
+    fun provideMediaApi(
+        @Named("normal") retrofit: Retrofit
+    ): MediaApi = retrofit.create(MediaApi::class.java)
+
+    @Provides
+    @Singleton
+    @Named("normal")
+    fun provideUsersApi(
+        @Named("normal") retrofit: Retrofit
+    ): UsersApi = retrofit.create(UsersApi::class.java)
+
+    // ==========================================
+    // REPOSITORIES
+    // ==========================================
+
+    @Provides
+    @Singleton
+    @Named("auth")
+    fun provideAuthPostsRepository(
+        @Named("auth") api: PostsApi
+    ): PostsRepository {
+        return PostsRepositoryImpl(api)
+    }
+
+    @Provides
+    @Singleton
+    @Named("normal")
+    fun provideUsersRepository(
+        @Named("normal") api: UsersApi
+    ): UsersRepository {
+        return UsersRepositoryImpl(api)
+    }
+}

@@ -1,15 +1,13 @@
 package ru.netology.network.dto.response
 
-
-
 data class PostDto(
     val id: Long,
-    val authorId: Long,
+    val authorId: Long?,
     val author: String,
     val authorJob: String?,
     val authorAvatar: String?,
     val content: String,
-    val published: String,
+    val published: String?,
     val coords: CoordsDto?,
     val link: String?,
     val mentionIds: List<Long>,

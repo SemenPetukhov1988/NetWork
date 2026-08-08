@@ -6,7 +6,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import jakarta.inject.Inject
+import jakarta.inject.Named
 import jakarta.inject.Singleton
 import ru.netology.network.api.UsersApi
 import ru.netology.network.repository.AuthRepository
@@ -21,7 +21,7 @@ object RepositoryModule {
     // ОДИН правильный провайдер для AuthRepository (через UsersApi)
     @Provides
     @Singleton
-    fun provideAuthRepository(api: UsersApi): AuthRepository =
+    fun provideAuthRepository(@Named("normal") api: UsersApi): AuthRepository =
         AuthRepositoryImpl(api)
 
     // ОДИН провайдер для LocalAuthRepository (через Context)

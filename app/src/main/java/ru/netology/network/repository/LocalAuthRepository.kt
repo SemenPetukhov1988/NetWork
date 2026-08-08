@@ -4,5 +4,10 @@ interface LocalAuthRepository {
     suspend fun saveToken(token: String)
     suspend fun getToken(): String?
     suspend fun clearToken()
-    suspend fun isLoggedIn(): Boolean
+
+    // Важно: здесь НЕ ставим suspend — это синхронный метод для сети
+    fun getTokenSync(): String?
+
+    // И этот тоже синхронный — для быстрых проверок
+    fun isLoggedIn(): Boolean
 }

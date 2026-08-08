@@ -30,6 +30,10 @@ class AuthViewModel @Inject constructor(
                 // 1. Стучимся на сервер и получаем ответ (TokenDto)
                 val response: TokenDto = repository.login(login, pass)
 
+                android.util.Log.d("AUTH_DEBUG", "LOGIN SUCCESS HTTP")
+                android.util.Log.d("AUTH_DEBUG", "Объект TokenDto целиком: $response")
+                android.util.Log.d("AUTH_DEBUG", "Поле token из DTO: '${response.token}'")
+
                 // 2. ВАЖНО: Сохраняем токен в локальное хранилище
                 // Проверь, что в TokenDto поле называется именно token.
                 // Если оно называется accessToken — поменяй response.token на response.accessToken

@@ -19,6 +19,9 @@ class LocalAuthRepositoryImpl @Inject constructor(
     private val prefs: SharedPreferences =
         context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
 
+    // Синхронный метод — нужен для NetworkModule (Interceptor)
+    override fun getTokenSync(): String? = prefs.getString(KEY_TOKEN, null)
+
     override suspend fun saveToken(token: String) {
         withContext(Dispatchers.IO) {
             prefs.edit().putString(KEY_TOKEN, token).apply()
@@ -37,7 +40,8 @@ class LocalAuthRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun isLoggedIn(): Boolean {
-        return getToken() != null
+    // Синхронная проверка — быстро и без корутин
+    override fun isLoggedIn(): Boolean {
+        return getTokenSync() != null
     }
 }
