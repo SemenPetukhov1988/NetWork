@@ -15,6 +15,7 @@ import ru.netology.network.repository.PostsRepository
 import jakarta.inject.Named
 import jakarta.inject.Singleton
 import kotlinx.coroutines.flow.update
+import java.io.File
 
 @HiltViewModel
 class CreatePostViewModel @Inject constructor(
@@ -29,26 +30,34 @@ class CreatePostViewModel @Inject constructor(
     }
     fun createPost(
         content: String,
-        imageFile: java.io.File?,
+        imageFile: File?, // Получаем файл из фрагмента
         latitude: Double?,
         longitude: Double?,
         link: String?
-    ) {
-        _uiState.value = PostUiState(isLoading = true)
+    ) = viewModelScope.launch {
+        _uiState.update { it.copy(isLoading = true, errorMessage = "") }
 
-        viewModelScope.launch {
-            try {
-                val newPost = repository.createPost(
-                    content = content,
-                    imageFile = imageFile,
-                    latitude = latitude,
-                    longitude = longitude,
-                    link = link
-                )
-                _uiState.value = PostUiState(post = newPost)
-            } catch (e: Exception) {
-                _uiState.value = PostUiState(errorMessage = e.message ?: "Не удалось опубликовать пост")
+        try {
+            var imageUrl: String? = null
+
+            // 1. Если файл есть -> грузим его и получаем URL
+            if (imageFile != null && imageFile.exists()) {
+                imageUrl = repository.uploadImage(imageFile)
+                // Можно удалить временный файл: imageFile.delete()
             }
+
+            // 2. Создаем пост, передавая URL вместо файла
+            val post = repository.createPost(
+                content = content,
+                imageUrl = imageUrl, // Передаем ссылку
+                latitude = latitude,
+                longitude = longitude,
+                link = link
+            )
+
+            _uiState.update { it.copy(post = post, isLoading = false) }
+        } catch (e: Exception) {
+            _uiState.update { it.copy(errorMessage = e.message ?: "Ошибка", isLoading = false) }
         }
     }
 }

@@ -6,7 +6,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- Заголовок -->
+    <!-- ================= ШАПКА (НЕ СКРОЛЛИТСЯ) ================= -->
+
     <TextView
         android:id="@+id/tvNewPostTitle"
         android:layout_width="wrap_content"
@@ -16,10 +17,9 @@
         android:text="New post"
         android:textSize="20sp"
         android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
-    <!-- Кнопка «Назад» -->
     <ImageView
         android:id="@+id/ivBackArrow"
         android:layout_width="24dp"
@@ -31,7 +31,6 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <!-- Кнопка «Опубликовать» -->
     <ImageView
         android:id="@+id/ivCheckMark"
         android:layout_width="24dp"
@@ -43,81 +42,87 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Поле ввода текста -->
-    <!-- ВАЖНО: Теперь его низ привязан к РАЗДЕЛИТЕЛЮ, а не к картинке -->
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/tilPostText"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+    <!-- ================= СКРОЛЛИМАЯ ОБЛАСТЬ (Контент) ================= -->
+    <!-- fillViewport="true" гарантирует, что контент займет весь экран, даже если его мало -->
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scrollView"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginStart="0dp"
-        android:layout_marginEnd="0dp"
-        android:layout_marginTop="16dp"
+        android:fillViewport="true"
+        android:overScrollMode="never"
         app:layout_constraintTop_toBottomOf="@id/tvNewPostTitle"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/bottomActions"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/dividerLine">
+        app:layout_constraintEnd_toEndOf="parent">
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etPostText"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:hint="Напишите что-нибудь..."
-            android:minLines="4"
-            android:gravity="top"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:paddingVertical="16dp"
-            android:background="@android:color/transparent" />
-    </com.google.android.material.textfield.TextInputLayout>
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
-    <!-- Место под картинку -->
-    <!-- ВАЖНО: Картинка теперь "плавающая". Она привязана сверху к тексту, снизу к линии.
-         Если её нет (visibility gone или пустая), она схлопывается в 0 и не мешает. -->
-    <ImageView
-        android:id="@+id/ivPostImage"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:scaleType="centerCrop"
-        android:contentDescription="Изображение поста"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="16dp"
-        app:layout_constraintTop_toBottomOf="@id/tilPostText"
-        app:layout_constraintBottom_toTopOf="@id/dividerLine"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        android:visibility="gone" />
-    <!-- visibility="gone" ставим по умолчанию, чтобы сразу видеть эффект.
-         В коде (Kotlin/Java) ты будешь менять это на VISIBLE, когда загрузишь фото -->
+            <!-- Поле ввода текста -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilPostText"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginTop="16dp">
 
-    <!-- Разделительная линия -->
-    <View
-        android:id="@+id/dividerLine"
-        android:layout_width="0dp"
-        android:layout_height="1dp"
-        android:background="#E0E0E0"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        app:layout_constraintTop_toBottomOf="@id/ivPostImage"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etPostText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Напишите что-нибудь..."
+                    android:minLines="4"
+                    android:gravity="top"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:paddingVertical="16dp"
+                    android:background="@android:color/transparent" />
+            </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- Кнопка Remove (скрыта) -->
-    <Button
-        android:id="@+id/btnRemoveImage"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Remove"
-        android:textSize="12sp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@id/ivPostImage"
-        app:layout_constraintEnd_toEndOf="@id/ivPostImage" />
+            <!-- Место под картинку (фиксированная высота) -->
+            <ImageView
+                android:id="@+id/ivPostImage"
+                android:layout_width="match_parent"
+                android:layout_height="240dp"
+                android:scaleType="centerCrop"
+                android:contentDescription="Изображение поста"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginTop="16dp"
+                android:visibility="gone" />
 
-    <!-- Панель кнопок внизу -->
+            <!-- Кнопка "Удалить фото" (поверх картинки, справа сверху) -->
+            <Button
+                android:id="@+id/btnRemoveImage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Удалить фото"
+                android:textSize="12sp"
+                android:background="@android:color/transparent"
+                android:textColor="?attr/colorPrimary"
+                android:layout_gravity="end"
+                android:layout_marginEnd="16dp"
+                android:layout_marginTop="8dp"
+                android:visibility="gone" />
+
+            <!-- Разделительная линия -->
+            <View
+                android:id="@+id/dividerLine"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#E0E0E0"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginTop="16dp" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- ================= КНОПКИ ВНИЗУ (НЕПОДВИЖНЫЕ) ================= -->
     <LinearLayout
         android:id="@+id/bottomActions"
         android:layout_width="0dp"
@@ -128,9 +133,8 @@
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/dividerLine">
+        app:layout_constraintEnd_toEndOf="parent">
 
         <ImageButton
             android:id="@+id/btnCamera"
