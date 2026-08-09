@@ -5,17 +5,7 @@
     android:layout_height="match_parent">
 
     <!-- Текст-метка для проверки -->
-    <TextView
-        android:id="@+id/textWall"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Вкладка Wall"
-        android:textColor="#3F51B5"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+
 
     <!-- Список публикаций -->
     <androidx.recyclerview.widget.RecyclerView
@@ -25,5 +15,5 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/textWall" /> <!-- Привязан к метке -->
+        app:layout_constraintTop_toTopOf="parent" /> <!-- Привязан к метке -->
 </androidx.constraintlayout.widget.ConstraintLayout>

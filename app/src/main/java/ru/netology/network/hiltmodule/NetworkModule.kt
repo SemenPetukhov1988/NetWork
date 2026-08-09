@@ -156,9 +156,9 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    @Named("normal")
+    @Named("auth")
     fun provideMyWallApi(
-        @Named("normal") retrofit: Retrofit
+        @Named("auth") retrofit: Retrofit
     ): MyWallApi = retrofit.create(MyWallApi::class.java)
 
     @Provides

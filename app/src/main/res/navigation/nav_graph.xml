@@ -55,5 +55,9 @@
         android:id="@+id/createPostFragment"
         android:name="ru.netology.network.fragment.CreatePostFragment"
         android:label="CreatePostFragment" />
+    <fragment
+        android:id="@+id/addWorkFragment"
+        android:name="ru.netology.network.fragment.AddWorkFragment"
+        android:label="AddWorkFragment" />
 
 </navigation>
