@@ -6,8 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- ================= ШАПКА (НЕ СКРОЛЛИТСЯ) ================= -->
-
+    <!-- ================= ШАПКА ================= -->
     <TextView
         android:id="@+id/tvNewWorkTitle"
         android:layout_width="wrap_content"
@@ -42,7 +41,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- ================= СКРОЛЛИМАЯ ОБЛАСТЬ (Контент) ================= -->
+    <!-- ================= СКРОЛЛИМАЯ ОБЛАСТЬ ================= -->
     <androidx.core.widget.NestedScrollView
         android:id="@+id/scrollView"
         android:layout_width="0dp"
@@ -105,30 +104,57 @@
                     android:background="@android:color/transparent" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Период работы -->
+            <!-- ДАТА НАЧАЛА (Вместо периода) -->
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/tilPeriod"
+                android:id="@+id/tilStartDate"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginEnd="16dp"
                 android:layout_marginTop="16dp"
-                android:hint="Период (напр. Июнь 2023 — Август 2024)">
+                android:hint="Дата начала (дд.мм.гггг)">
 
                 <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etPeriod"
+                    android:id="@+id/etStartDate"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="text"
+                    android:inputType="date"
                     android:maxLines="1"
                     android:paddingStart="16dp"
                     android:paddingEnd="16dp"
                     android:paddingVertical="16dp"
-                    android:background="@android:color/transparent" />
+                    android:background="@android:color/transparent"
+                    android:focusable="false"
+                    android:focusableInTouchMode="false" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Описание обязанностей (опционально, многострочное) -->
+            <!-- ДАТА ОКОНЧАНИЯ -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilFinishDate"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginTop="16dp"
+                android:hint="Дата окончания (дд.мм.гггг)">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etFinishDate"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="date"
+                    android:maxLines="1"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:paddingVertical="16dp"
+                    android:background="@android:color/transparent"
+                    android:focusable="false"
+                    android:focusableInTouchMode="false" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Описание обязанностей -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilDescription"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
