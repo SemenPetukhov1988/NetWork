@@ -2,6 +2,9 @@ package ru.netology.network.repository
 
 import retrofit2.HttpException
 import jakarta.inject.Inject
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
 import ru.netology.network.api.UsersApi
 
 import ru.netology.network.dto.response.TokenDto
@@ -23,15 +26,32 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun register(login: String, pass: String, name: String): TokenDto {
+    override suspend fun register(
+        login: String,
+        pass: String,
+        name: String,
+        avatarFile: java.io.File? // <-- Принимает сам файл или null
+    ): TokenDto {
         return try {
-            // Передаём параметры по отдельности, Retrofit сделает из них форму
-            api.register(login = login, name = name, pass = pass)
+            // Если файл есть — делаем из него MultipartBody.Part
+            val avatarPart = if (avatarFile != null) {
+                val requestBody = avatarFile.asRequestBody("image/*".toMediaTypeOrNull())
+                MultipartBody.Part.createFormData("file", avatarFile.name, requestBody)
+            } else {
+                null
+            }
+
+            // Отправляем в API
+            api.register(
+                login = login,
+                name = name,
+                pass = pass,
+                avatar = avatarPart
+            )
         } catch (e: HttpException) {
             when (e.code()) {
                 403 -> throw Exception("Пользователь с таким логином уже существует!")
                 400 -> throw Exception("Ошибка валидации данных")
-
                 else -> throw Exception("Сервер вернул ошибку: ${e.code()}")
             }
         }

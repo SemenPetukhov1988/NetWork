@@ -11,7 +11,6 @@ import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.resource.bitmap.CircleCrop
 import ru.netology.network.R
 import ru.netology.network.dto.response.PostDto
 
@@ -40,28 +39,31 @@ class PostAdapter(
         private val tvText: TextView = itemView.findViewById(R.id.postText)
 
         fun bind(post: PostDto) {
-            tvAuthorName.text = post.author
-            tvDate.text = post.published
+            // Базовые поля
+            tvAuthorName.text = post.author ?: "Пользователь" // Защита от null, если автор вдруг пустой
+            tvDate.text = post.published ?: "-"
 
             itemView.setOnClickListener { onAuthorClick(post) }
             btnOptions.setOnClickListener { onOptionsClick(post) }
 
-            // Аватар
-            post.authorAvatar?.let { url ->
+            // --- БЛОК АВАТАРКИ АВТОРА (ТВОЙ ГЛАВНЫЙ ВОПРОС) ---
+            if (!post.authorAvatar.isNullOrBlank()) {
                 Glide.with(itemView.context)
-                    .load(url)
-                    .circleCrop()                 // <-- сразу после load, до placeholder/error
-                    .placeholder(R.drawable.load)
-                    .error(R.drawable.smile)
+                    .load(post.authorAvatar)
+                    .circleCrop()
+                    .placeholder(R.drawable.load)      // Пока грузится — крутится лоадер
+                    .error(R.drawable.smile)          // Если ссылка битая — смайлик
                     .into(ivAvatar)
-            } ?: run {
+            } else {
+                // Если ссылки нет — ставим дефолтную картинку
                 Glide.with(itemView.context)
                     .load(R.drawable.avatar)
                     .circleCrop()
                     .into(ivAvatar)
             }
+            // --------------------------------------------------
 
-            // Фото поста
+            // Фото поста (это у тебя уже было и работало)
             val attachment = post.attachment
             if (attachment != null && attachment.type == "IMAGE") {
                 ivPostImage.isVisible = true
@@ -81,6 +83,7 @@ class PostAdapter(
 
 class PostDiffCallback : DiffUtil.ItemCallback<PostDto>() {
     override fun areItemsTheSame(oldItem: PostDto, newItem: PostDto): Boolean = oldItem.id == newItem.id
+
     override fun areContentsTheSame(oldItem: PostDto, newItem: PostDto): Boolean {
         return oldItem.id == newItem.id &&
                 oldItem.content == newItem.content &&

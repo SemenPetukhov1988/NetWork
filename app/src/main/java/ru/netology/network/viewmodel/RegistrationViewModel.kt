@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import ru.netology.network.dto.statemodel.AuthUiState
 import ru.netology.network.repository.AuthRepository
+import java.io.File
 
 @HiltViewModel
 class RegistrationViewModel @Inject constructor(
@@ -20,33 +21,33 @@ class RegistrationViewModel @Inject constructor(
     val state: StateFlow<AuthUiState> = _state.asStateFlow()
 
     // Передаем все 3 параметра, как в твоем репозитории
-    fun register(login: String, pass: String, name: String) {
+    fun register(login: String, pass: String, name: String, avatarFile: File? = null) {
         viewModelScope.launch {
             // 1. Ставим статус "Загрузка"
             _state.value = _state.value.copy(
                 isLoading = true,
                 errorMessage = null,
-                token = null
+                token = null,
+                isSuccess = false
             )
 
             try {
-                // 2. Вызываем репозиторий.
-                // Если сервер ответит 200 OK, мы получим TokenDto
-                val response = repository.register(login, pass, name)
+                // 2. Вызываем репозиторий, передавая туда файл (или null)
+                // Репозиторий сам знает, как превратить этот File в Multipart-запрос
+                val response = repository.register(login, pass, name, avatarFile)
 
-                // 3. Сохраняем токен! Это твоя цель на сегодня
+                // 3. Сохраняем токен из ответа
                 _state.value = _state.value.copy(
                     isLoading = false,
                     isSuccess = true,
-                    token = response.token // Берем токен из ответа
+                    token = response.token
                 )
 
             } catch (e: Exception) {
-                // Сюда попадают ошибки, которые ты сам выбросил в репозитории
-                // (например, "Пользователь уже существует")
+                // Сюда попадают ошибки от репозитория (например, 403 — пользователь занят)
                 _state.value = _state.value.copy(
                     isLoading = false,
-                    errorMessage = e.message ?: "Неизвестная ошибка"
+                    errorMessage = e.message ?: "Произошла ошибка при регистрации"
                 )
             }
         }

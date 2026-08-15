@@ -28,7 +28,8 @@
         suspend fun register(
             @Part("login") login: String,
             @Part("name") name: String,
-            @Part("pass") pass: String
+            @Part("pass") pass: String,
+            @Part avatar: MultipartBody.Part?
         ): TokenDto
 
         @POST("/api/users/authentication")
