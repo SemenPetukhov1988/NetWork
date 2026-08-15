@@ -55,6 +55,8 @@ class RegistrationFragment : Fragment() {
 
         setupClickListeners()
         observeViewModel()
+
+
     }
 
     private fun setupClickListeners() {

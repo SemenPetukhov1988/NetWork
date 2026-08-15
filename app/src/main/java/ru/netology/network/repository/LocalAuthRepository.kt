@@ -10,4 +10,8 @@ interface LocalAuthRepository {
 
     // И этот тоже синхронный — для быстрых проверок
     fun isLoggedIn(): Boolean
+
+    suspend fun saveUserId(userId: Long)
+    suspend fun getUserId(): Long?
+    suspend fun clearUserId()
 }

@@ -10,18 +10,27 @@ import ru.netology.network.api.UsersApi
 import ru.netology.network.dto.response.TokenDto
 
 class AuthRepositoryImpl @Inject constructor(
-    private val api: UsersApi
+    private val api: UsersApi,
+    private val localAuthRepository: LocalAuthRepository
 ) : AuthRepository {
 
     override suspend fun login(login: String, pass: String): TokenDto {
         return try {
-            api.login(login = login, pass = pass)
+            val response = api.login(login = login, pass = pass)
+
+            // 1. Сохраняем токен
+            localAuthRepository.saveToken(response.token)
+            // 2. Сохраняем ID (обязательно!)
+            localAuthRepository.saveUserId(response.id)
+
+            return response
         } catch (e: HttpException) {
+            // ... твой существующий код обработки ошибок ...
             val code = e.code()
             when (code) {
-                401, 404 -> throw Exception("Юзер не зарегестрирован.Попробуйте ещё раз.")
+                401, 404 -> throw Exception("Юзер не зарегестрирован. Попробуйте ещё раз.")
                 400 -> throw Exception("Неправильный пароль")
-                else -> throw Exception("Произошла ошибка сервера: $code")
+                else -> throw Exception("Произошла ошибка сервера: \$code")
             }
         }
     }
@@ -30,10 +39,9 @@ class AuthRepositoryImpl @Inject constructor(
         login: String,
         pass: String,
         name: String,
-        avatarFile: java.io.File? // <-- Принимает сам файл или null
+        avatarFile: java.io.File?
     ): TokenDto {
         return try {
-            // Если файл есть — делаем из него MultipartBody.Part
             val avatarPart = if (avatarFile != null) {
                 val requestBody = avatarFile.asRequestBody("image/*".toMediaTypeOrNull())
                 MultipartBody.Part.createFormData("file", avatarFile.name, requestBody)
@@ -41,18 +49,25 @@ class AuthRepositoryImpl @Inject constructor(
                 null
             }
 
-            // Отправляем в API
-            api.register(
+            val response = api.register(
                 login = login,
                 name = name,
                 pass = pass,
                 avatar = avatarPart
             )
+
+            // 1. Сохраняем токен
+            localAuthRepository.saveToken(response.token)
+            // 2. Сохраняем ID
+            localAuthRepository.saveUserId(response.id)
+
+            return response
         } catch (e: HttpException) {
+            // ... твой существующий код обработки ошибок ...
             when (e.code()) {
                 403 -> throw Exception("Пользователь с таким логином уже существует!")
                 400 -> throw Exception("Ошибка валидации данных")
-                else -> throw Exception("Сервер вернул ошибку: ${e.code()}")
+                else -> throw Exception("Сервер вернул ошибку: \${e.code()}")
             }
         }
     }

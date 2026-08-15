@@ -21,8 +21,10 @@ object RepositoryModule {
     // ОДИН правильный провайдер для AuthRepository (через UsersApi)
     @Provides
     @Singleton
-    fun provideAuthRepository(@Named("normal") api: UsersApi): AuthRepository =
-        AuthRepositoryImpl(api)
+    fun provideAuthRepository(
+        @Named("normal") api: UsersApi,
+        localAuthRepository: LocalAuthRepository
+    ): AuthRepository = AuthRepositoryImpl(api, localAuthRepository)
 
     // ОДИН провайдер для LocalAuthRepository (через Context)
     @Provides

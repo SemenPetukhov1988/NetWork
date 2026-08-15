@@ -32,6 +32,7 @@
             @Part avatar: MultipartBody.Part?
         ): TokenDto
 
+
         @POST("/api/users/authentication")
         @Multipart
         suspend fun login(
