@@ -12,7 +12,9 @@ import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.bumptech.glide.Glide
+import com.google.android.material.tabs.TabLayoutMediator
 import dagger.hilt.android.AndroidEntryPoint
 import jakarta.inject.Inject
 import jakarta.inject.Named
@@ -31,7 +33,6 @@ class ProfileFragment : Fragment() {
     @Inject
     lateinit var localAuthRepository: LocalAuthRepository
 
-    // ВАЖНО: Добавляем UsersApi с тем же именем, что и в NetworkModule (@Named("normal"))
     @Inject
     @field:Named("normal")
     lateinit var usersApi: UsersApi
@@ -55,82 +56,72 @@ class ProfileFragment : Fragment() {
             WindowInsetsCompat.CONSUMED
         }
 
-        // --- 2. Настройка вкладок (TabLayout) ---
-        with(binding.tabsWallJobs) {
-            addTab(newTab().setText("Моя стена"))
-            addTab(newTab().setText("Работа"))
+        // --- 2. НАСТРОЙКА VIEWPAGER2 И ТАБОВ (ИСПРАВЛЕНО) ---
+        // Создаем адаптер для ViewPager2
+        val viewPagerAdapter = object : FragmentStateAdapter(this) {
+            override fun getItemCount(): Int = 2
 
-            addOnTabSelectedListener(object : com.google.android.material.tabs.TabLayout.OnTabSelectedListener {
-                override fun onTabSelected(tab: com.google.android.material.tabs.TabLayout.Tab) {
-                    when (tab.position) {
-                        0 -> switchChild(MyWallFragment())
-                        else -> switchChild(MyJobFragment())
-                    }
+            override fun createFragment(position: Int): Fragment {
+                return when (position) {
+                    0 -> MyWallFragment()
+                    else -> MyJobFragment()
                 }
-                override fun onTabUnselected(tab: com.google.android.material.tabs.TabLayout.Tab) {}
-                override fun onTabReselected(tab: com.google.android.material.tabs.TabLayout.Tab) {}
-            })
+            }
         }
 
-        if (savedInstanceState == null) {
-            switchChild(MyWallFragment())
-        }
+        binding.viewPagerWallJobs.adapter = viewPagerAdapter
+
+        // Связываем Табы и ViewPager через Mediator
+        // Это автоматически переключает страницы при клике на таб и наоборот
+        TabLayoutMediator(binding.tabsWallJobs, binding.viewPagerWallJobs) { tab, position ->
+            when (position) {
+                0 -> tab.text = "Wall"
+                1 -> tab.text = "Jobs"
+            }
+        }.attach()
 
         // --- 3. Кнопка «Назад» ---
         binding.btnBack.setOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
 
-        // --- 4. Кнопка «Выход» (ИСПРАВЛЕНО: чистим и токен, и userId!) ---
+        // --- 4. Кнопка «Выход» ---
         binding.btnLogout.setOnClickListener {
             lifecycleScope.launch {
                 localAuthRepository.clearToken()
-                localAuthRepository.clearUserId() // <-- Критически важно!
+                localAuthRepository.clearUserId()
                 findNavController().navigate(R.id.action_profileFragment_to_authFragment)
                 Toast.makeText(requireContext(), "Вы вышли из аккаунта", Toast.LENGTH_SHORT).show()
             }
         }
 
-        // --- 5. ЗАГРУЗКА АВАТАРА (ГЛАВНОЕ ИСПРАВЛЕНИЕ) ---
+        // --- 5. ЗАГРУЗКА АВАТАРА ---
         loadUserAvatar()
     }
 
-    /**
-     * Отдельная функция для загрузки аватара.
-     * Так код чище, и его проще отлаживать.
-     */
     private fun loadUserAvatar() {
         lifecycleScope.launch {
             try {
-                // 1. Получаем ID пользователя из локального хранилища
                 val userId = localAuthRepository.getUserId()
 
                 if (userId == null) {
-                    Log.w("ProfileFragment", "⚠️ ID пользователя не найден! Возможно, сессия истекла.")
-                    // Если ID нет, оставляем дефолтную картинку (она должна быть в XML)
+                    Log.w("ProfileFragment", "⚠️ ID пользователя не найден!")
                     return@launch
                 }
 
-                Log.d("ProfileFragment", "✅ ID пользователя найден: $userId. Делаем запрос...")
-
-                // 2. Запрос к API: GET /api/users/{id}
-                // Токен автоматически подставится твоим AuthInterceptor из NetworkModule
+                Log.d("ProfileFragment", "✅ ID пользователя найден: \$userId")
                 val user = usersApi.getUserById(userId)
+                Log.d("ProfileFragment", "📡 Ответ от сервера получен")
 
-                Log.d("ProfileFragment", "📡 Ответ от сервера получен. Аватар: ${user.avatar}")
-
-                // 3. Загрузка картинки через Glide
-                val imageView = binding.imgAvatar // <-- Убедись, что в XML у ImageView id="imgAvatar"
+                val imageView = binding.imgAvatar
 
                 if (!user.avatar.isNullOrBlank()) {
                     Glide.with(requireContext())
-                        .load(user.avatar) // Это должна быть полная ссылка (http://...)
+                        .load(user.avatar)
                         .circleCrop()
-                        .placeholder(R.drawable.load) // Картинка-заглушка, пока грузится
-                        .error(R.drawable.smile)      // Картинка при ошибке загрузки
+                        .placeholder(R.drawable.load)
+                        .error(R.drawable.smile)
                         .into(imageView)
-
-                    Log.d("ProfileFragment", "📸 Аватар успешно загружен в ImageView")
                 } else {
                     Log.d("ProfileFragment", "📷 На сервере нет аватара, ставим дефолт")
                     Glide.with(requireContext())
@@ -138,24 +129,14 @@ class ProfileFragment : Fragment() {
                         .circleCrop()
                         .into(imageView)
                 }
-
             } catch (e: Exception) {
-                // Сюда попадем, если сервер вернул ошибку (403, 500) или нет сети
-                Log.e("ProfileFragment", "❌ Ошибка загрузки профиля: ${e.message}", e)
-
-                // Даже при ошибке показываем дефолтную аватарку, чтобы UI не ломался
+                Log.e("ProfileFragment", "❌ Ошибка загрузки профиля: \${e.message}", e)
                 Glide.with(requireContext())
                     .load(R.drawable.avatar)
                     .circleCrop()
                     .into(binding.imgAvatar)
             }
         }
-    }
-
-    private fun switchChild(fragment: Fragment) {
-        childFragmentManager.beginTransaction()
-            .replace(R.id.fragmentContainerWallJob, fragment)
-            .commit()
     }
 
     override fun onDestroyView() {
