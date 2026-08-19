@@ -1,6 +1,7 @@
 package ru.netology.network.fragment
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,6 +12,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import androidx.paging.LoadState
 import androidx.recyclerview.widget.LinearLayoutManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
@@ -72,7 +74,36 @@ class WallAllUsersFragment : Fragment() {
                 adapter.submitData(pagingData)
             }
         }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            adapter.loadStateFlow.collectLatest { loadState ->
+                when (loadState.refresh) { // refresh — это загрузка первой страницы (самый главный кружок)
+                    is LoadState.Loading -> {
+                        // Показываем кружок (или ProgressBar)
+                        binding.progressBar.visibility = View.VISIBLE
+                        Log.d("WallAllUsers", "🔄 Грузим первую страницу постов...")
+                    }
+                    is LoadState.NotLoading -> {
+                        // Скрываем кружок, когда всё загрузилось
+                        binding.progressBar.visibility = View.GONE
+                        Log.d("WallAllUsers", "✅ Данные загружены")
+                    }
+                    is LoadState.Error -> {
+                        // Тут можно показать ошибку вместо кружка
+                        binding.progressBar.visibility = View.GONE
+                        Log.e("WallAllUsers", "❌ Ошибка загрузки ленты")
+                        // Можно показать Toast или специальную View с ошибкой
+                    }
+                }
+
+                // Если хочешь показывать кружок и при подгрузке следующих страниц (пагинация вниз)
+
+            }
+        }
     }
+
+
+
 
     override fun onDestroyView() {
         super.onDestroyView()

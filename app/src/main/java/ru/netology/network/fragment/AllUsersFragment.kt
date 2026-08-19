@@ -62,12 +62,17 @@ class UsersAllFragment : Fragment() {
         // Слушаем состояние из ViewModel
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.uiState.collect { state ->
-                if (state.isLoading) return@collect
-                if (state.errorMessage != null) return@collect
+                // 1. Показываем/скрываем кружок в зависимости от флага isLoading
+                binding.progressBar.visibility = if (state.isLoading) View.VISIBLE else View.GONE
+
+                // Дальше твоя старая логика: если не загрузка и нет ошибки — показываем список
+                if (state.isLoading || state.errorMessage != null) return@collect
 
                 adapter.submitList(state.users)
             }
         }
+
+
     }
 
     override fun onDestroyView() {

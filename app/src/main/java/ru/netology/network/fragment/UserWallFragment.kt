@@ -23,6 +23,7 @@ class UserWallFragment : Fragment() {
         val userId = arguments?.getString("userId")
         Log.d("UserWallFragment", "📂 Загружаю ленту для пользователя: ${userId ?: "неизвестен"}")
         // Сюда потом добавишь логику загрузки ленты
+
     }
 
     override fun onDestroyView() {
