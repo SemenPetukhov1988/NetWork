@@ -28,8 +28,6 @@ class OtherProfileFragment : Fragment() {
     private var _binding: FragmentOtherProfileBinding? = null
     private val binding get() = _binding!!
 
-    // Нам НЕ нужен LocalAuthRepository, потому что это чужой профиль
-
     @Inject
     @field:Named("normal")
     lateinit var usersApi: UsersApi
@@ -46,31 +44,40 @@ class OtherProfileFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // --- 1. Отступы под статус-бар (оставляем как было) ---
+        // --- 1. Отступы под статус-бар ---
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, windowInsets ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.updatePadding(top = insets.top, bottom = insets.bottom)
             WindowInsetsCompat.CONSUMED
         }
 
-        // Получаем userId из аргументов. Это ключевой момент!
+        // --- 2. Достаём данные из бандла ---
         val userId = arguments?.getString("userId")
-        if (userId == null) {
-            Log.e("OtherProfileFragment", "❌ Не передан userId! Нужно передавать при навигации.")
-            // Тут можно показать Toast или закрыть фрагмент, но для UI пока просто логируем
-        } else {
-            Log.d("OtherProfileFragment", "✅ Получен userId для чужого профиля: $userId")
+        val userName = arguments?.getString("userName")
+        val userAvatar = arguments?.getString("userAvatar")
 
-            // Сюда потом добавим загрузку имени в tvHeaderName
-            // binding.tvHeaderName.text = "Имя пользователя (заглушка)"
+        if (userId.isNullOrBlank()) {
+            Log.e("OtherProfileFragment", "❌ Не передан userId! Нужно передавать при навигации.")
+        } else {
+            Log.d("OtherProfileFragment", "✅ Получен userId: $userId")
+
+            // Сразу ставим имя, если оно пришло
+            userName?.let {
+                binding.tvHeaderName.text = it
+                Log.d("OtherProfileFragment", "👤 Имя: $it")
+            } ?: run {
+                binding.tvHeaderName.text = "Имя не указано"
+            }
         }
 
-        // --- 2. НАСТРОЙКА VIEWPAGER2 И ТАБОВ ---
+        // Загружаем аватарку из бандла (если есть)
+        loadUserAvatar(userAvatar)
+
+        // --- 3. НАСТРОЙКА VIEWPAGER2 И ТАБОВ ---
         val viewPagerAdapter = object : FragmentStateAdapter(this) {
             override fun getItemCount(): Int = 2
 
             override fun createFragment(position: Int): Fragment {
-                // Передаём userId во вкладки через arguments
                 return when (position) {
                     0 -> UserWallFragment().apply {
                         arguments = Bundle().apply { putString("userId", userId) }
@@ -91,34 +98,39 @@ class OtherProfileFragment : Fragment() {
             }
         }.attach()
 
-        // --- 3. Кнопка «Назад» ---
+        // --- 4. Кнопка «Назад» ---
         binding.btnBack.setOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
-
-        // Кнопку «Выход» мы убрали из XML, поэтому здесь её нет
-
-        // --- 4. ЗАГРУЗКА АВАТАРКИ (ЗАГЛУШКА ДЛЯ UI) ---
-        loadUserAvatar()
     }
 
-    private fun loadUserAvatar() {
-        // Пока НЕ делаем запрос к серверу, чтобы не усложнять.
-        // Просто показываем дефолтную аватарку, чтобы UI не был пустым.
-
+    // Обновлённый метод: принимает ссылку и решает, что грузить
+    private fun loadUserAvatar(avatarUrl: String?) {
         val imageView = binding.imgAvatar
 
-        Glide.with(requireContext())
-            .load(R.drawable.avatar) // Пока заглушка
-            .placeholder(R.drawable.load)
-            .error(R.drawable.smile)
-            .into(imageView)
+        // Ссылка для теста (та же самая)
 
-        Log.d("OtherProfileFragment", "📷 Аватарка установлена (заглушка)")
-    }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
+        if (!avatarUrl.isNullOrBlank()) {
+            // Случай: аватарка есть
+            Glide.with(requireContext())
+                .load(avatarUrl)   // Для теста грузим смайл
+                .placeholder(R.drawable.load) // Обязательно показываем, что грузится
+                .error(R.drawable.smile)      // Если ошибка — тоже смайл
+                .fitCenter()                  // Важно: чтобы маленький смайл влез в шапку
+                .into(imageView)
+
+            Log.d("OtherProfileFragment", "📷 Ветка IF: грузим локальный смайл")
+        } else {
+            // Случай: аватарки нет
+            Glide.with(requireContext())
+                .load(R.drawable.avatar)                   // Грузим ту же ссылку, что и раньше
+                .placeholder(R.drawable.load) // <--- ВОТ ЭТОГО НЕ ХВАТАЛО! Покажи иконку загрузки
+                .error(R.drawable.smile)      // Если ссылка битая — покажи смайл
+                .fitCenter()                  // Чтобы картинка не уехала за экран
+                .into(imageView)
+
+            Log.d("OtherProfileFragment", "📷 Ветка ELSE: грузим ссылку с плейсхолдером")
+        }
     }
 }

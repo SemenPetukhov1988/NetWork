@@ -8,7 +8,6 @@ import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
-
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import dagger.hilt.android.AndroidEntryPoint
@@ -44,8 +43,13 @@ class UsersAllFragment : Fragment() {
         binding.usersRecyclerView.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = UsersAdapter { user ->
-                // Переход на OtherProfileFragment по клику
-                val bundle = bundleOf("userId" to user.id.toString())
+                // Отправляем ВСЕ нужные данные сразу, чтобы не дёргать сервер ради имени и аватарки
+                val bundle = bundleOf(
+                    "userId" to user.id.toString(),
+                    "userName" to user.name,
+                    "userAvatar" to user.avatar
+                )
+
                 findNavController().navigate(
                     R.id.otherProfileFragment,
                     bundle
@@ -58,13 +62,8 @@ class UsersAllFragment : Fragment() {
         // Слушаем состояние из ViewModel
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.uiState.collect { state ->
-                if (state.isLoading) {
-                    return@collect
-                }
-
-                if (state.errorMessage != null) {
-                    return@collect
-                }
+                if (state.isLoading) return@collect
+                if (state.errorMessage != null) return@collect
 
                 adapter.submitList(state.users)
             }
