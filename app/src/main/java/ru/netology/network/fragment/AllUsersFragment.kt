@@ -4,18 +4,19 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import ru.netology.adapter.UsersAdapter
+import ru.netology.network.R
 import ru.netology.network.databinding.FragmentUsersBinding
-
-
 import ru.netology.network.viewmodel.UsersViewModel
-
 
 @AndroidEntryPoint
 class UsersAllFragment : Fragment() {
@@ -43,8 +44,12 @@ class UsersAllFragment : Fragment() {
         binding.usersRecyclerView.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = UsersAdapter { user ->
-                // Сюда потом вставишь логику перехода в профиль
-                // Например: findNavController().navigate(...)
+                // Переход на OtherProfileFragment по клику
+                val bundle = bundleOf("userId" to user.id.toString())
+                findNavController().navigate(
+                    R.id.otherProfileFragment,
+                    bundle
+                )
             }
         }
 
@@ -54,17 +59,13 @@ class UsersAllFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.uiState.collect { state ->
                 if (state.isLoading) {
-                    // Пока грузится — ничего не делаем, список остаётся пустым
                     return@collect
                 }
 
                 if (state.errorMessage != null) {
-                    // Если ошибка — можно вывести Toast или просто оставить пустой список
-                    // Toast.makeText(context, state.errorMessage, Toast.LENGTH_LONG).show()
                     return@collect
                 }
 
-                // Если данные пришли — показываем их
                 adapter.submitList(state.users)
             }
         }

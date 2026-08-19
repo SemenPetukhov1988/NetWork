@@ -118,7 +118,7 @@ class ProfileFragment : Fragment() {
                 if (!user.avatar.isNullOrBlank()) {
                     Glide.with(requireContext())
                         .load(user.avatar)
-                        .circleCrop()
+
                         .placeholder(R.drawable.load)
                         .error(R.drawable.smile)
                         .into(imageView)
@@ -126,14 +126,14 @@ class ProfileFragment : Fragment() {
                     Log.d("ProfileFragment", "📷 На сервере нет аватара, ставим дефолт")
                     Glide.with(requireContext())
                         .load(R.drawable.avatar)
-                        .circleCrop()
+
                         .into(imageView)
                 }
             } catch (e: Exception) {
                 Log.e("ProfileFragment", "❌ Ошибка загрузки профиля: \${e.message}", e)
                 Glide.with(requireContext())
                     .load(R.drawable.avatar)
-                    .circleCrop()
+
                     .into(binding.imgAvatar)
             }
         }

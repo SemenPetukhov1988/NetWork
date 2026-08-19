@@ -59,5 +59,17 @@
         android:id="@+id/addWorkFragment"
         android:name="ru.netology.network.fragment.AddWorkFragment"
         android:label="AddWorkFragment" />
+    <fragment
+        android:id="@+id/otherProfileFragment"
+        android:name="ru.netology.network.fragment.OtherProfileFragment"
+        android:label="OtherProfileFragment" />
+    <fragment
+        android:id="@+id/usersAllFragment"
+        android:name="ru.netology.network.fragment.UsersAllFragment"
+        android:label="UsersAllFragment" >
+        <action
+            android:id="@+id/action_usersAllFragment_to_otherProfileFragment"
+            app:destination="@id/otherProfileFragment" />
+    </fragment>
 
 </navigation>
