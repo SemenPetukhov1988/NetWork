@@ -21,6 +21,8 @@ import jakarta.inject.Named
 import jakarta.inject.Singleton
 import ru.netology.network.repository.MyJobRepository
 import ru.netology.network.repository.MyJobRepositoryImpl
+import ru.netology.network.repository.UserJobsRepository
+import ru.netology.network.repository.UserJobsRepositoryImpl
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -221,5 +223,28 @@ object NetworkModule {
         @Named("normal") api: UsersApi
     ): UsersRepository {
         return UsersRepositoryImpl(api)
+    }
+
+    @Provides
+    @Singleton
+    @Named("normal")
+    fun provideUserWallApi(
+        @Named("normal") retrofit: Retrofit
+    ): UserWallApi = retrofit.create(UserWallApi::class.java)
+
+    @Provides
+    @Singleton
+    @Named("normal")
+    fun provideUserJobsApi(
+        @Named("normal") retrofit: Retrofit): UserJobsApi =
+        retrofit.create(UserJobsApi::class.java)
+
+    @Provides
+    @Singleton
+    @Named("normal")
+    fun provideUserJobsRepository(
+        @Named("normal") api: UserJobsApi
+    ): UserJobsRepository {
+        return UserJobsRepositoryImpl(api)
     }
 }
