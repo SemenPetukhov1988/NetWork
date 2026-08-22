@@ -23,6 +23,7 @@ import ru.netology.network.repository.MyJobRepository
 import ru.netology.network.repository.MyJobRepositoryImpl
 import ru.netology.network.repository.UserJobsRepository
 import ru.netology.network.repository.UserJobsRepositoryImpl
+import java.util.concurrent.TimeUnit
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -77,6 +78,9 @@ object NetworkModule {
             }
             // 2. Потом добавляем логирование, чтобы видеть уже финальный запрос с обоими заголовками
             .addInterceptor(loggingInterceptor)
+            .connectTimeout(30, TimeUnit.SECONDS) // время на установку соединения
+            .readTimeout(60, TimeUnit.SECONDS)    // время на чтение ответа
+            .writeTimeout(60, TimeUnit.SECONDS)   // время на запись данных
             .build()
     }
 
@@ -98,6 +102,9 @@ object NetworkModule {
                     .build()
                 chain.proceed(request)
             }
+            .connectTimeout(30, TimeUnit.SECONDS) // время на установку соединения
+            .readTimeout(60, TimeUnit.SECONDS)    // время на чтение ответа
+            .writeTimeout(60, TimeUnit.SECONDS)
             .build()
     }
 

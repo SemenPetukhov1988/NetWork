@@ -28,6 +28,7 @@ class MainTabsFragment : Fragment() {
 
     @Inject
     lateinit var localAuthRepository: LocalAuthRepository
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -39,52 +40,38 @@ class MainTabsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        // 1. Отступы под статус-бар
         ViewCompat.setOnApplyWindowInsetsListener(binding.topBar) { v, windowInsets ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
-            // Добавляем отступ только сверху. Остальные оставляем как есть.
             v.updatePadding(top = insets.top)
             WindowInsetsCompat.CONSUMED
         }
 
-        // 1. Настраиваем обработчик нажатий на меню (BottomNavigationView)
+        // 2. ГЛАВНЫЙ КОСТЫЛЬ: сразу показываем ленту.
+        // Не смотрим ни на savedInstanceState, ни на историю.
+        // Просто кладём в контейнер фрагмент ленты.
+        switchTab(WallAllUsersFragment())
+
+        // 3. Теперь вешаем слушатель на табы.
+        // Он будет работать только для будущих кликов пользователя.
         binding.bottomNavigation.setOnItemSelectedListener { item ->
             when (item.itemId) {
-                R.id.action_wall -> {
-                    // Передаем ЭКЗЕМПЛЯР фрагмента, а не класс!
-                    switchTab(WallAllUsersFragment())
-                    true
-                }
-
-                R.id.action_events -> {
-                    switchTab(EventsAllUsersFragment())
-                    true
-                }
-
-                R.id.action_users -> {
-                    switchTab(UsersAllFragment())
-                    true
-                }
-
-                else -> false
+                R.id.action_wall -> switchTab(WallAllUsersFragment())
+                R.id.action_events -> switchTab(EventsAllUsersFragment())
+                R.id.action_users -> switchTab(UsersAllFragment())
+                else -> return@setOnItemSelectedListener false
             }
+            true
         }
 
-        // 2. Если это первый запуск (без восстановления состояния) — показываем ленту по умолчанию
-        if (savedInstanceState == null) {
-            switchTab(WallAllUsersFragment())
-        }
-
-        // 3. Кнопка профиля
+        // Кнопка профиля
         binding.profileButton.setOnClickListener {
             findNavController().navigate(R.id.profileFragment)
         }
     }
 
-    /**
-     * Функция для переключения вкладок.
-     * Используем childFragmentManager, так как мы внутри фрагмента.
-     * @param fragment Фрагмент, который нужно показать в контейнере.
-     */
+    // Простая замена фрагмента. Ничего лишнего.
     private fun switchTab(fragment: Fragment) {
         childFragmentManager.beginTransaction()
             .replace(R.id.tabsContainer, fragment)

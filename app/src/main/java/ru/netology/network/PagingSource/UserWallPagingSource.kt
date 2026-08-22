@@ -18,11 +18,8 @@ class UserWallPagingSource(
             try {
                 val key = params.key
 
-                // 1. Обработка ПЕРВОЙ загрузки (нет ключа)
+                // 1. ПЕРВАЯ ЗАГРУЗКА
                 if (key == null) {
-                    // Используем базовый эндпоинт.
-                    // Если бэк требует latest, раскомментируй строку ниже и закомментируй getUserWall
-                    // val posts = api.getUserLatest(authorId = authorId, count = initialCount)
                     val posts = api.getUserWall(authorId = authorId)
 
                     if (posts.isEmpty()) {
@@ -36,15 +33,14 @@ class UserWallPagingSource(
                     return@withContext LoadResult.Page(
                         data = posts,
                         // Для первой пачки:
-                        // prevKey (скролл вверх) - это самый старый пост (первый в списке)
-                        // nextKey (скролл вниз) - это самый новый пост (последний в списке)
-                        prevKey = posts.first().id,
-                        nextKey = posts.last().id
+                        // prevKey - самый старый пост (начало ленты)
+                        // nextKey - самый свежий пост (конец ленты)
+                        prevKey = posts.last().id,
+                        nextKey = posts.first().id
                     )
                 }
 
-                // 2. Обработка ПОДГРУЗКИ (есть ключ)
-                // Теперь мы явно проверяем тип params через when
+                // 2. ПОДГРУЗКА ДАННЫХ
                 return@withContext when (params) {
                     is LoadParams.Append -> {
                         // Скролл ВНИЗ: нужны посты НОВЕЕ, чем key
@@ -57,14 +53,14 @@ class UserWallPagingSource(
                             return@withContext LoadResult.Page(
                                 data = emptyList(),
                                 prevKey = key,
-                                nextKey = null
+                                nextKey = null // Дальше вниз грузить нечего
                             )
                         }
 
                         LoadResult.Page(
                             data = posts,
-                            prevKey = key, // Предыдущая граница - это тот ключ, с которого начали
-                            nextKey = posts.last().id // Новая граница - последний полученный пост
+                            prevKey = key,           // Предыдущая граница
+                            nextKey = posts.first().id // Самый свежий из новых
                         )
                     }
 
@@ -77,28 +73,37 @@ class UserWallPagingSource(
                         )
 
                         if (posts.isEmpty()) {
+                            // Если постов старше нет - значит, мы дошли до самого начала
                             return@withContext LoadResult.Page(
                                 data = emptyList(),
-                                prevKey = null,
-                                nextKey = key
+                                prevKey = null,      // Дальше вверх грузить некуда
+                                nextKey = key        // Но вниз можно вернуться к уже загруженному
                             )
                         }
 
                         LoadResult.Page(
                             data = posts,
-                            prevKey = posts.first().id, // Новая граница - первый полученный пост
-                            nextKey = key // Предыдущая граница - это тот ключ, с которого начали
+                            prevKey = posts.last().id,  // Самый старый из полученных (новая граница вверх)
+                            nextKey = key              // Предыдущая граница вниз
                         )
                     }
 
-                    // LoadParams.Refresh обрабатывается отдельно через getRefreshKey,
-                    // но чтобы when был exhaustive (исчерпывающим), добавим заглушку.
-                    // На практике сюда код не дойдет, если логика верна.
                     is LoadParams.Refresh -> {
+                        // При рефреше мы просто запрашиваем первую пачку заново
+                        val posts = api.getUserWall(authorId = authorId)
+
+                        if (posts.isEmpty()) {
+                            return@withContext LoadResult.Page(
+                                data = emptyList(),
+                                prevKey = null,
+                                nextKey = null
+                            )
+                        }
+
                         LoadResult.Page(
-                            data = emptyList(),
-                            prevKey = null,
-                            nextKey = null
+                            data = posts,
+                            prevKey = posts.last().id,
+                            nextKey = posts.first().id
                         )
                     }
                 }

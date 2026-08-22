@@ -7,7 +7,6 @@
     android:layout_height="match_parent">
 
     <!-- ================= ШАПКА (НЕ СКРОЛЛИТСЯ) ================= -->
-
     <TextView
         android:id="@+id/tvNewPostTitle"
         android:layout_width="wrap_content"
@@ -31,6 +30,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
+    <!-- УБРАЛИ прогресс-бар отсюда. Он теперь в overlay -->
     <ImageView
         android:id="@+id/ivCheckMark"
         android:layout_width="24dp"
@@ -42,8 +42,8 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+
     <!-- ================= СКРОЛЛИМАЯ ОБЛАСТЬ (Контент) ================= -->
-    <!-- fillViewport="true" гарантирует, что контент займет весь экран, даже если его мало -->
     <androidx.core.widget.NestedScrollView
         android:id="@+id/scrollView"
         android:layout_width="0dp"
@@ -83,7 +83,39 @@
                     android:background="@android:color/transparent" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Место под картинку (фиксированная высота) -->
+            <!-- Блок ошибки и кнопка «Повторить» -->
+            <LinearLayout
+                android:id="@+id/errorBlock"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="8dp"
+                android:visibility="gone"
+                android:background="#FFF3E0"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginTop="12dp">
+
+                <TextView
+                    android:id="@+id/tvError"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textColor="#D84315"
+                    android:textSize="14sp"
+                    android:text="Не удалось загрузить пост" />
+
+                <Button
+                    android:id="@+id/btnRetry"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Повторить"
+                    style="?attr/borderlessButtonStyle"
+                    android:textColor="?attr/colorPrimary" />
+            </LinearLayout>
+
+            <!-- Место под картинку -->
             <ImageView
                 android:id="@+id/ivPostImage"
                 android:layout_width="match_parent"
@@ -95,7 +127,7 @@
                 android:layout_marginTop="16dp"
                 android:visibility="gone" />
 
-            <!-- Кнопка "Удалить фото" (поверх картинки, справа сверху) -->
+            <!-- Кнопка "Удалить фото" -->
             <Button
                 android:id="@+id/btnRemoveImage"
                 android:layout_width="wrap_content"
@@ -118,7 +150,6 @@
                 android:layout_marginStart="16dp"
                 android:layout_marginEnd="16dp"
                 android:layout_marginTop="16dp" />
-
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
@@ -163,4 +194,45 @@
             android:background="?attr/selectableItemBackgroundBorderless" />
     </LinearLayout>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <!-- ================= СЛОЙ ЗАГРУЗКИ (ПОВЕРХ ВСЕГО) ================= -->
+    <!-- Этот блок будет перекрывать весь экран, когда идёт загрузка -->
+    <FrameLayout
+        android:id="@+id/loadingOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        android:background="#CCFFFFFF"
+    app:layout_constraintTop_toTopOf="parent"
+    app:layout_constraintBottom_toBottomOf="parent"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintEnd_toEndOf="parent">
+
+    <!-- Контейнер для центрирования текста и прогресс-бара вместе -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:layout_gravity="center">
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            style="?attr/progressBarStyle"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:indeterminateTint="#666666"
+        android:layout_marginBottom="12dp" />
+
+        <TextView
+            android:id="@+id/tvLoadingText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Идёт загрузка поста…"
+            android:textColor="#666666"
+            android:textSize="16sp"
+            android:fontFamily="sans-serif-medium"
+            android:lineSpacingExtra="2sp" />
+    </LinearLayout>
+</FrameLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>

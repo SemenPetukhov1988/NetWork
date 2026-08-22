@@ -34,13 +34,11 @@ class CreatePostFragment : Fragment() {
 
     private val viewModel: CreatePostViewModel by activityViewModels()
 
-    // Храним выбранный файл до отправки поста
+    // Храним выбранный файл до момента УСПЕШНОЙ публикации
     private var currentImageFile: File? = null
 
     private companion object {
         private const val REQUEST_CODE_IMAGE = 100
-        // В новых версиях ImagePicker этот ключ в extras может быть пустым или отсутствовать,
-        // поэтому мы больше не полагаемся на него как на единственный источник истины.
         private const val EXTRA_FILE_KEY = "com.github.dhaval2404.imagepicker.EXTRA_FILE"
     }
 
@@ -56,6 +54,7 @@ class CreatePostFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Отступы под статус-бар
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, windowInsets ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.updatePadding(
@@ -72,18 +71,28 @@ class CreatePostFragment : Fragment() {
     private fun observeUiState() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.uiState.collectLatest { state ->
+                // 1. Блокируем кнопку публикации, пока идёт загрузка
                 binding.ivCheckMark.isEnabled = !state.isLoading
 
+                // 2. Показываем/скрываем центральный оверлей с прогресс-баром и текстом
+                binding.loadingOverlay.visibility = if (state.isLoading) View.VISIBLE else View.GONE
+
+                // 3. Показываем/скрываем блок ошибки
+                if (!state.errorMessage.isNullOrBlank()) {
+                    binding.errorBlock.visibility = View.VISIBLE
+                    binding.tvError.text = state.errorMessage
+                    binding.btnRetry.isEnabled = state.canRetry
+                } else {
+                    binding.errorBlock.visibility = View.GONE
+                }
+
+                // 4. Успех: переход назад и очистка формы
                 if (state.post != null) {
                     Toast.makeText(requireContext(), "Пост опубликован!", Toast.LENGTH_SHORT).show()
                     viewModel.clearPostState()
                     findNavController().popBackStack()
                     clearForm()
                     return@collectLatest
-                }
-
-                if (!state.errorMessage.isNullOrBlank()) {
-                    Toast.makeText(requireContext(), state.errorMessage, Toast.LENGTH_LONG).show()
                 }
             }
         }
@@ -94,13 +103,13 @@ class CreatePostFragment : Fragment() {
             findNavController().popBackStack()
         }
 
-        // Кнопка выбора картинки
         binding.btnCamera.setOnClickListener {
             ImagePicker.with(this)
                 .crop()
                 .start(REQUEST_CODE_IMAGE)
         }
 
+        // Кнопка «Опубликовать»
         binding.ivCheckMark.setOnClickListener {
             val content = binding.etPostText.text.toString().trim()
             if (content.isEmpty()) {
@@ -121,7 +130,36 @@ class CreatePostFragment : Fragment() {
                 link = link
             )
 
+            // ВАЖНО: НЕ обнуляем currentImageFile здесь!
+            // Если отправка упадёт с ошибкой, пользователь нажмёт «Повторить»,
+            // и нам нужно, чтобы картинка всё ещё была доступна.
+        }
+
+        // Кнопка «Повторить» при ошибке
+        binding.btnRetry.setOnClickListener {
+            val content = binding.etPostText.text.toString().trim()
+            if (content.isEmpty()) {
+                Toast.makeText(requireContext(), "Текст поста не должен быть пустым", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            // currentImageFile всё ещё хранит файл, потому что мы не обнулили его выше
+            val imageFile = currentImageFile
+
+            viewModel.createPost(
+                content = content,
+                imageFile = imageFile,
+                latitude = null,
+                longitude = null,
+                link = null
+            )
+        }
+
+        // Кнопка "Удалить фото"
+        binding.btnRemoveImage.setOnClickListener {
             currentImageFile = null
+            binding.ivPostImage.visibility = View.GONE
+            binding.btnRemoveImage.visibility = View.GONE
         }
     }
 
@@ -131,13 +169,13 @@ class CreatePostFragment : Fragment() {
         if (requestCode == REQUEST_CODE_IMAGE && resultCode == Activity.RESULT_OK) {
             var file: File? = null
 
-            // 1. Пробуем получить файл от библиотеки (старый способ)
+            // 1. Пробуем получить файл от библиотеки
             val libraryFile = data?.getSerializableExtra(EXTRA_FILE_KEY) as? File
             if (libraryFile != null && libraryFile.exists()) {
                 file = libraryFile
             }
 
-            // 2. Если не получилось — копируем из URI вручную (наш надежный способ)
+            // 2. Если не получилось — копируем из URI вручную
             if (file == null || !file.exists()) {
                 val uri = data?.data
                 if (uri != null) {
@@ -155,18 +193,13 @@ class CreatePostFragment : Fragment() {
             if (file != null && file.exists()) {
                 currentImageFile = file
 
-                // --- ВОТ ЗДЕСЬ НАЧИНАЕТСЯ МАГИЯ ОТОБРАЖЕНИЯ ---
-
-                // Показываем ImageView (если был скрыт)
                 binding.ivPostImage.visibility = View.VISIBLE
 
-                // Загружаем картинку через Glide
                 Glide.with(this)
-                    .load(file) // Glide умеет грузить прямо из объекта File
+                    .load(file)
                     .into(binding.ivPostImage)
 
                 Toast.makeText(context, "Картинка выбрана: ${file.name}", Toast.LENGTH_SHORT).show()
-
             } else {
                 Toast.makeText(context, "Не удалось получить файл. Попробуйте другую картинку.", Toast.LENGTH_LONG).show()
             }
@@ -174,13 +207,10 @@ class CreatePostFragment : Fragment() {
     }
 
     /**
-     * Надёжно копирует изображение из Uri (которое возвращает галерея)
-     * во временную папку приложения (cacheDir).
-     * Это работает на всех версиях Android, включая 10+ и кастомные прошивки.
+     * Надёжно копирует изображение из Uri во временную папку приложения.
      */
     private fun copyUriToFile(uri: Uri, context: android.content.Context): File {
         val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
-        // Создаём файл с уникальным именем во внутренней папке кэша приложения
         val file = File(context.cacheDir, System.currentTimeMillis().toString() + ".jpg")
 
         inputStream?.use { input ->
@@ -197,6 +227,10 @@ class CreatePostFragment : Fragment() {
 
     private fun clearForm() {
         binding.etPostText.text?.clear()
+        binding.ivPostImage.visibility = View.GONE
+        binding.btnRemoveImage.visibility = View.GONE
+        // Очищаем файл ТОЛЬКО после успешной публикации
+        currentImageFile = null
     }
 
     override fun onDestroyView() {

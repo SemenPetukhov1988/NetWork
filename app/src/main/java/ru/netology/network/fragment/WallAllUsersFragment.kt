@@ -77,27 +77,25 @@ class WallAllUsersFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             adapter.loadStateFlow.collectLatest { loadState ->
-                when (loadState.refresh) { // refresh — это загрузка первой страницы (самый главный кружок)
-                    is LoadState.Loading -> {
-                        // Показываем кружок (или ProgressBar)
-                        binding.progressBar.visibility = View.VISIBLE
-                        Log.d("WallAllUsers", "🔄 Грузим первую страницу постов...")
-                    }
-                    is LoadState.NotLoading -> {
-                        // Скрываем кружок, когда всё загрузилось
-                        binding.progressBar.visibility = View.GONE
-                        Log.d("WallAllUsers", "✅ Данные загружены")
-                    }
-                    is LoadState.Error -> {
-                        // Тут можно показать ошибку вместо кружка
-                        binding.progressBar.visibility = View.GONE
-                        Log.e("WallAllUsers", "❌ Ошибка загрузки ленты")
-                        // Можно показать Toast или специальную View с ошибкой
+                // ГЛАВНОЕ ИЗМЕНЕНИЕ: проверяем, есть ли binding, прежде чем трогать UI
+                _binding?.let { b ->
+                    when (loadState.refresh) {
+                        is LoadState.Loading -> {
+                            b.progressBar.visibility = View.VISIBLE
+                            Log.d("WallAllUsers", "🔄 Грузим первую страницу постов...")
+                        }
+                        is LoadState.NotLoading -> {
+                            b.progressBar.visibility = View.GONE
+                            Log.d("WallAllUsers", "✅ Данные загружены")
+                        }
+                        is LoadState.Error -> {
+                            b.progressBar.visibility = View.GONE
+                            Log.e("WallAllUsers", "❌ Ошибка загрузки ленты")
+                        }
                     }
                 }
-
-                // Если хочешь показывать кружок и при подгрузке следующих страниц (пагинация вниз)
-
+                // Если _binding == null (фрагмент уничтожен), мы просто ничего не делаем,
+                // и приложение НЕ падает.
             }
         }
     }
